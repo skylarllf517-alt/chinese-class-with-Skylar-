@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉语课堂 · 林老师</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;900&family=Noto+Sans+SC:wght@300;400;500&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #faf6ee;
+    --red: #c0392b;
+    --gold: #b8860b;
+    --warm: #e8dcc8;
+    --muted: #7a6e60;
+    --accent: #8b1a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ─── DECORATIVE BACKGROUND ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(192,57,43,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 90% 80%, rgba(184,134,11,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SEAL STAMP ELEMENT ─── */
+  .seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px; height: 64px;
+    border: 3px solid var(--red);
+    border-radius: 4px;
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 20px;
+    color: var(--red);
+    letter-spacing: 2px;
+    writing-mode: vertical-rl;
+    transform: rotate(-8deg);
+    opacity: 0.85;
+    line-height: 1;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    background: rgba(250,246,238,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(184,134,11,0.2);
+  }
+
+  .nav-logo {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    font-weight: 400;
+  }
+
+  .nav-links a:hover { color: var(--red); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 120px 60px 60px;
+    position: relative;
+    gap: 60px;
+  }
+
+  .hero-left {
+    position: relative;
+    animation: fadeUp 1s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-tag {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--red);
+    opacity: 0.4;
+    max-width: 60px;
+  }
+
+  .hero-name {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: clamp(56px, 8vw, 96px);
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .hero-name-en {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 6px;
+    margin-bottom: 36px;
+  }
+
+  .hero-bio {
+    font-size: 15px;
+    line-height: 2;
+    color: var(--ink);
+    opacity: 0.8;
+    max-width: 420px;
+    margin-bottom: 48px;
+    border-left: 2px solid var(--gold);
+    padding-left: 20px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover {
+    background: var(--red);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139,26,26,0.3);
+  }
+
+  .btn-outline {
+    padding: 14px 32px;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .btn-outline:hover {
+    background: var(--gold);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  /* ─── HERO RIGHT ─── */
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    animation: fadeUp 1s ease 0.2s both;
+  }
+
+  .avatar-frame {
+    position: relative;
+    width: 300px; height: 300px;
+  }
+
+  .avatar-placeholder {
+    width: 280px; height: 280px;
+    background: linear-gradient(135deg, var(--warm), #e0d0b0);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 80px;
+    color: rgba(139,26,26,0.2);
+    border: 1px solid rgba(184,134,11,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar-placeholder::before {
+    content: '老师';
+    position: absolute;
+    font-size: 100px;
+    color: rgba(139,26,26,0.08);
+    transform: rotate(-15deg);
+  }
+
+  .avatar-placeholder::after {
+    content: '📸 上传您的照片';
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    position: absolute;
+    bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  .avatar-frame .seal {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+  }
+
+  /* ─── CONTACT STRIP ─── */
+  .contact-strip {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .contact-item .icon {
+    width: 28px; height: 28px;
+    background: var(--warm);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  /* ─── SECTION COMMON ─── */
+  section {
+    padding: 100px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .section-title {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 42px;
+    color: var(--ink);
+  }
+
+  .section-sub {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--gold), transparent);
+    opacity: 0.5;
+  }
+
+  /* ─── DIARY SECTION ─── */
+  .diary-section { background: #f5ede0; }
+
+  .diary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .diary-card {
+    background: var(--paper);
+    padding: 32px;
+    border-top: 3px solid var(--gold);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(184,134,11,0.03));
+  }
+
+  .diary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  }
+
+  .diary-date {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .diary-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .diary-excerpt {
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+  }
+
+  .diary-emoji {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 28px;
+    opacity: 0.6;
+  }
+
+  /* ─── MATERIALS SECTION ─── */
+  .materials-section { background: var(--paper); }
+
+  .materials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .material-card {
+    border: 1px solid rgba(184,134,11,0.3);
+    padding: 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .material-card:hover {
+    border-color: var(--gold);
+    background: rgba(184,134,11,0.04);
+    transform: translateX(4px);
+  }
+
+  .material-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .material-info h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .material-info p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .material-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    background: rgba(192,57,43,0.1);
+    color: var(--red);
+    border-radius: 2px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  /* ─── GAMES SECTION ─── */
+  .games-section { background: #1a1208; color: var(--paper); }
+
+  .games-section .section-title { color: var(--paper); }
+  .games-section .section-sub { color: rgba(250,246,238,0.4); }
+  .games-section .section-line { background: linear-gradient(to right, rgba(250,246,238,0.3), transparent); }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .game-card {
+    border: 1px solid rgba(250,246,238,0.12);
+    padding: 36px 28px;
+    text-align: center;
+    transition: all 0.4s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(192,57,43,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .game-card:hover { border-color: rgba(192,57,43,0.5); }
+  .game-card:hover::before { opacity: 1; }
+
+  .game-card:hover { transform: translateY(-4px); }
+
+  .game-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+
+  .game-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--paper);
+  }
+
+  .game-desc {
+    font-size: 12px;
+    color: rgba(250,246,238,0.5);
+    line-height: 2;
+  }
+
+  .game-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 24px;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .game-btn:hover { background: var(--red); color: #fff; }
+
+  /* ─── PAYMENT SECTION ─── */
+  .payment-section { background: var(--warm); }
+
+  .payment-cards {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .payment-card {
+    background: var(--paper);
+    padding: 40px;
+    text-align: center;
+    min-width: 200px;
+    border-bottom: 3px solid var(--red);
+    transition: transform 0.3s;
+  }
+
+  .payment-card:hover { transform: translateY(-6px); }
+
+  .payment-qr {
+    width: 120px; height: 120px;
+    background: #f0f0f0;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px dashed rgba(0,0,0,0.2);
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .payment-label {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .payment-note {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--ink);
+    color: rgba(250,246,238,0.5);
+    padding: 40px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    letter-spacing: 2px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 20px;
+    color: var(--paper);
+  }
+
+  /* ─── DECORATIVE BRUSH STROKES ─── */
+  .brush-number {
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 120px;
+    color: rgba(139,26,26,0.06);
+    position: absolute;
+    top: 40px;
+    right: 60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ─── SCROLL INDICATOR ─── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 3px;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { gap: 20px; }
+    .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
+    .hero-right { display: none; }
+    section { padding: 60px 24px; }
+    footer { padding: 30px 24px; }
+    .brush-number { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">林 · 汉语</div>
+  <ul class="nav-links">
+    <li><a href="#about">关于我</a></li>
+    <li><a href="#diary">教学日记</a></li>
+    <li><a href="#materials">课件资料</a></li>
+    <li><a href="#games">互动游戏</a></li>
+    <li><a href="#contact">联系我</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about" style="z-index:1; position:relative;">
+  <div class="hero-left">
+    <div class="hero-tag">对外汉语教师 · Chinese Teacher</div>
+    <div class="hero-name">林老师</div>
+    <div class="hero-name-en">SKYLAR LIN</div>
+    <p class="hero-bio">
+      你好！我是林老师，来自中国，现居英国。<br>
+      我热爱汉语教学，相信每一个字都是一扇通往中国文化的窗。<br>
+      无论你是零基础还是进阶学习者，我都期待与你共同探索这门美丽的语言。
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">预约课程</a>
+      <a href="#games" class="btn-outline">体验小游戏</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="avatar-frame">
+      <div class="avatar-placeholder">👤</div>
+      <div class="seal">林</div>
+    </div>
+    <div class="contact-strip">
+      <div class="contact-item">
+        <div class="icon">📧</div>
+        <span>your@email.com</span>
+      </div>
+      <div class="contact-item">
+        <div class="icon">💬</div>
+        <span>微信：yourwechat</span>
+      </div>
+      <div class="contact-item">
+        <div class="icon">📍</div>
+        <span>英国 · 远程授课</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">▼ 向下探索</div>
+</section>
+
+<!-- DIARY -->
+<section class="diary-section" id="diary">
+  <div class="brush-number">日</div>
+  <div class="section-header">
+    <h2 class="section-title">教学日记</h2>
+    <span class="section-sub">Teaching Journal</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="diary-grid">
+    <div class="diary-card">
+      <div class="diary-emoji">😄</div>
+      <div class="diary-date">2025年5月 · 第12课</div>
+      <h3 class="diary-title">小明分不清"四"和"十"，我们笑了整整十分钟</h3>
+      <p class="diary-excerpt">今天上课教数字，学生一直把 sì 和 shí 搞混，结果说出了"我有四十四只猫"，把整个课堂都逗乐了……</p>
+    </div>
+
+    <div class="diary-card">
+      <div class="diary-emoji">🥟</div>
+      <div class="diary-date">2025年4月 · 第8课</div>
+      <h3 class="diary-title">用包饺子学量词——"一个、一只、一碗"</h3>
+      <p class="diary-excerpt">这次我们一边包饺子一边练量词，学生说这是她学过最好吃的汉语课。量词这个难点，竟然通过饺子解决了！</p>
+    </div>
+
+    <div class="diary-card">
+      <div class="diary-emoji">🌸</div>
+      <div class="diary-date">2025年3月 · 第5课</div>
+      <h3 class="diary-title">第一次用中文讲完整个故事</h3>
+      <p class="diary-excerpt">学生用学过的词语讲了一个关于她家猫咪的故事，虽然句子还很简单，但眼睛里的骄傲让我很感动……</p>
+    </div>
+  </div>
+</section>
+
+<!-- MATERIALS -->
+<section class="materials-section" id="materials">
+  <div class="section-header">
+    <h2 class="section-title">课件 & 作业</h2>
+    <span class="section-sub">Materials</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="materials-grid">
+    <div class="material-card">
+      <div class="material-icon">📖</div>
+      <div class="material-info">
+        <h3>第1课 · 你好！</h3>
+        <p>基础问候语、自我介绍、声调入门</p>
+        <span class="material-badge">课件 PDF</span>
+      </div>
+    </div>
+    <div class="material-card">
+      <div class="material-icon">✏️</div>
+      <div class="material-info">
+        <h3>作业 · 数字练习</h3>
+        <p>1-100数字听写 + 填空练习题</p>
+        <span class="material-badge">作业 PDF</span>
+      </div>
+    </div>
+    <div class="material-card">
+      <div class="material-icon">🎴</div>
+      <div class="material-info">
+        <h3>汉字卡片 · 日常用词</h3>
+        <p>可打印的词汇记忆卡片，含拼音</p>
+        <span class="material-badge">可打印</span>
+      </div>
+    </div>
+    <div class="material-card">
+      <div class="material-icon">🎧</div>
+      <div class="material-info">
+        <h3>听力练习 · 第3课</h3>
+        <p>购物对话录音 + 理解练习题</p>
+        <span class="material-badge">音频 + 作业</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GAMES -->
+<section class="games-section" id="games">
+  <div class="brush-number" style="color:rgba(250,246,238,0.04);">戏</div>
+  <div class="section-header">
+    <h2 class="section-title">互动游戏</h2>
+    <span class="section-sub">Interactive Games</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="games-grid">
+    <div class="game-card">
+      <span class="game-emoji">🃏</span>
+      <h3 class="game-title">汉字配对</h3>
+      <p class="game-desc">将汉字与对应的拼音或图片配对，考验你的记忆力</p>
+      <a href="#" class="game-btn">开始游戏</a>
+    </div>
+    <div class="game-card">
+      <span class="game-emoji">✏️</span>
+      <h3 class="game-title">在线填空</h3>
+      <p class="game-desc">完成句子练习，巩固本节课的重点词汇和句型</p>
+      <a href="#" class="game-btn">开始练习</a>
+    </div>
+    <div class="game-card">
+      <span class="game-emoji">🎯</span>
+      <h3 class="game-title">声调挑战</h3>
+      <p class="game-desc">听录音，快速判断是哪个声调，反应越快得分越高</p>
+      <a href="#" class="game-btn">挑战声调</a>
+    </div>
+    <div class="game-card">
+      <span class="game-emoji">📝</span>
+      <h3 class="game-title">词语测验</h3>
+      <p class="game-desc">选择题小测验，检验本周学习成果</p>
+      <a href="#" class="game-btn">开始测验</a>
+    </div>
+  </div>
+</section>
+
+<!-- PAYMENT / CONTACT -->
+<section class="payment-section" id="contact">
+  <div class="section-header">
+    <h2 class="section-title">联系 & 支付</h2>
+    <span class="section-sub">Contact & Payment</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="payment-cards">
+    <div class="payment-card">
+      <div class="payment-qr">
+        <span style="font-size:28px">💚</span>
+        <span>微信收款码</span>
+      </div>
+      <div class="payment-label">微信支付</div>
+      <div class="payment-note">扫码付款 / WeChat Pay</div>
+    </div>
+    <div class="payment-card">
+      <div class="payment-qr">
+        <span style="font-size:28px">🔵</span>
+        <span>支付宝收款码</span>
+      </div>
+      <div class="payment-label">支付宝</div>
+      <div class="payment-note">扫码付款 / Alipay</div>
+    </div>
+    <div class="payment-card">
+      <div class="payment-qr">
+        <span style="font-size:28px">🏦</span>
+        <span>银行转账信息</span>
+      </div>
+      <div class="payment-label">银行转账</div>
+      <div class="payment-note">UK Bank Transfer</div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:48px;">
+    <p style="font-size:13px; color:var(--muted); letter-spacing:1px; margin-bottom:16px;">也可以直接联系我预约试听课 🎉</p>
+    <a href="mailto:your@email.com" class="btn-primary" style="display:inline-block;">📧 发送邮件</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">林 · 汉语课堂</div>
+  <div>© 2025 林老师 · 以爱授课，以文化人</div>
+  <div style="display:flex;gap:16px;">
+    <a href="#" style="color:rgba(250,246,238,0.4); text-decoration:none; transition:color 0.3s;" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='rgba(250,246,238,0.4)'">微信</a>
+    <a href="#" style="color:rgba(250,246,238,0.4); text-decoration:none; transition:color 0.3s;" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='rgba(250,246,238,0.4)'">小红书</a>
+    <a href="#" style="color:rgba(250,246,238,0.4); text-decoration:none; transition:color 0.3s;" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='rgba(250,246,238,0.4)'">LinkedIn</a>
+  </div>
+</footer>
+
+</body>
+</html>
