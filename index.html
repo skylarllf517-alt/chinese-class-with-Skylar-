@@ -8,378 +8,193 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  :root {
-    --ink: #1a1208;
-    --paper: #faf6ee;
-    --red: #c0392b;
-    --gold: #b8860b;
-    --warm: #e8dcc8;
-    --muted: #7a6e60;
-    --accent: #8b1a1a;
-    --green: #2a7d4f;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Noto Sans SC', sans-serif;
-    font-weight: 300;
-    min-height: 100vh;
-  }
+:root {
+  --ink: #1a1208; --paper: #faf6ee; --red: #c0392b;
+  --gold: #b8860b; --warm: #e8dcc8; --muted: #7a6e60;
+  --accent: #8b1a1a; --green: #2a7d4f;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--paper); color:var(--ink); font-family:'Noto Sans SC',sans-serif; font-weight:300; min-height:100vh; }
+.screen { display:none; min-height:100vh; }
+.screen.active { display:block; }
 
-  /* ── SCREENS ── */
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: block; }
+/* AUTH */
+.auth-bg { min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--paper); position:relative; overflow:hidden; }
+.auth-bg::before { content:'林'; font-family:'Ma Shan Zheng',serif; font-size:400px; color:rgba(139,26,26,0.04); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+.auth-card { background:white; border:1px solid rgba(184,134,11,0.2); padding:48px; width:100%; max-width:400px; position:relative; z-index:1; box-shadow:0 20px 60px rgba(0,0,0,0.06); }
+.auth-seal { width:56px; height:56px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-family:'Ma Shan Zheng',serif; font-size:24px; margin:0 auto 20px; border-radius:4px; }
+.auth-title { font-family:'Ma Shan Zheng',serif; font-size:26px; text-align:center; margin-bottom:6px; }
+.auth-sub { font-size:13px; color:var(--muted); text-align:center; margin-bottom:32px; }
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:11px; letter-spacing:2px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; }
+.field input { width:100%; padding:12px 16px; border:1px solid rgba(184,134,11,0.3); background:var(--paper); font-family:'Noto Sans SC',sans-serif; font-size:14px; color:var(--ink); outline:none; transition:border-color 0.2s; }
+.field input:focus { border-color:var(--accent); }
+.btn-primary { width:100%; padding:14px; background:var(--accent); color:white; border:none; font-family:'Noto Sans SC',sans-serif; font-size:14px; letter-spacing:2px; cursor:pointer; transition:background 0.2s; margin-top:8px; }
+.btn-primary:hover { background:var(--red); }
+.btn-primary:disabled { background:var(--muted); cursor:not-allowed; }
+.auth-toggle { text-align:center; margin-top:20px; font-size:13px; color:var(--muted); }
+.auth-toggle a { color:var(--accent); cursor:pointer; text-decoration:underline; }
+.alert { padding:12px 16px; margin-bottom:16px; font-size:13px; border-left:3px solid; }
+.alert-error { background:rgba(192,57,43,0.08); border-color:var(--red); color:var(--red); }
+.alert-success { background:rgba(42,125,79,0.08); border-color:var(--green); color:var(--green); }
+.alert-info { background:rgba(184,134,11,0.08); border-color:var(--gold); color:var(--gold); }
 
-  /* ── AUTH ── */
-  .auth-bg {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--paper);
-    position: relative;
-    overflow: hidden;
-  }
-  .auth-bg::before {
-    content: '林';
-    font-family: 'Ma Shan Zheng', serif;
-    font-size: 400px;
-    color: rgba(139,26,26,0.04);
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-  .auth-card {
-    background: white;
-    border: 1px solid rgba(184,134,11,0.2);
-    padding: 48px;
-    width: 100%;
-    max-width: 400px;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.06);
-  }
-  .auth-seal {
-    width: 56px; height: 56px;
-    background: var(--accent);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Ma Shan Zheng', serif;
-    font-size: 24px;
-    margin: 0 auto 20px;
-    border-radius: 4px;
-  }
-  .auth-title {
-    font-family: 'Ma Shan Zheng', serif;
-    font-size: 26px;
-    text-align: center;
-    margin-bottom: 6px;
-    color: var(--ink);
-  }
-  .auth-sub {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 32px;
-    letter-spacing: 0.5px;
-  }
-  .field { margin-bottom: 16px; }
-  .field label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-  }
-  .field input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid rgba(184,134,11,0.3);
-    background: var(--paper);
-    font-family: 'Noto Sans SC', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .field input:focus { border-color: var(--accent); }
-  .btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    font-family: 'Noto Sans SC', sans-serif;
-    font-size: 14px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 8px;
-  }
-  .btn-primary:hover { background: var(--red); }
-  .btn-primary:disabled { background: var(--muted); cursor: not-allowed; }
-  .auth-toggle {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .auth-toggle a { color: var(--accent); cursor: pointer; text-decoration: underline; }
-  .alert {
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 13px;
-    border-left: 3px solid;
-  }
-  .alert-error { background: rgba(192,57,43,0.08); border-color: var(--red); color: var(--red); }
-  .alert-success { background: rgba(42,125,79,0.08); border-color: var(--green); color: var(--green); }
-  .alert-info { background: rgba(184,134,11,0.08); border-color: var(--gold); color: var(--gold); }
+/* TOPBAR */
+.topbar { position:sticky; top:0; z-index:100; background:rgba(250,246,238,0.95); backdrop-filter:blur(8px); border-bottom:1px solid rgba(184,134,11,0.2); padding:16px 40px; display:flex; align-items:center; justify-content:space-between; }
+.topbar-logo { font-family:'Ma Shan Zheng',serif; font-size:22px; color:var(--accent); letter-spacing:3px; }
+.topbar-right { display:flex; align-items:center; gap:16px; }
+.user-chip { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.user-avatar { width:30px; height:30px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:500; }
+.btn-sm { padding:8px 18px; border:1px solid rgba(184,134,11,0.4); background:transparent; font-family:'Noto Sans SC',sans-serif; font-size:12px; letter-spacing:1px; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.btn-sm:hover { border-color:var(--accent); color:var(--accent); }
 
-  /* ── TOPBAR ── */
-  .topbar {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(250,246,238,0.95);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(184,134,11,0.2);
-    padding: 16px 40px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .topbar-logo {
-    font-family: 'Ma Shan Zheng', serif;
-    font-size: 22px;
-    color: var(--accent);
-    letter-spacing: 3px;
-  }
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .user-chip {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--muted);
-  }
-  .user-avatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--accent); color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 500;
-  }
-  .btn-sm {
-    padding: 8px 18px;
-    border: 1px solid rgba(184,134,11,0.4);
-    background: transparent;
-    font-family: 'Noto Sans SC', sans-serif;
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+/* PENDING */
+.pending-wrap { min-height:80vh; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; gap:16px; padding:40px; }
+.pending-icon { font-family:'Ma Shan Zheng',serif; font-size:80px; color:rgba(184,134,11,0.3); }
+.pending-title { font-family:'Ma Shan Zheng',serif; font-size:28px; }
+.pending-msg { font-size:14px; color:var(--muted); line-height:2; max-width:400px; }
 
-  /* ── PENDING SCREEN ── */
-  .pending-wrap {
-    min-height: 80vh;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; text-align: center; gap: 16px; padding: 40px;
-  }
-  .pending-icon {
-    font-family: 'Ma Shan Zheng', serif;
-    font-size: 80px; color: rgba(184,134,11,0.3);
-  }
-  .pending-title { font-family: 'Ma Shan Zheng', serif; font-size: 28px; }
-  .pending-msg { font-size: 14px; color: var(--muted); line-height: 2; max-width: 400px; }
+/* STUDENT */
+.page { padding:40px; max-width:900px; margin:0 auto; }
+.page-greeting { font-family:'Ma Shan Zheng',serif; font-size:32px; margin-bottom:4px; }
+.page-sub { font-size:13px; color:var(--muted); margin-bottom:32px; letter-spacing:1px; }
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px; }
+.stat-card { background:white; border:1px solid rgba(184,134,11,0.2); padding:24px; border-top:3px solid var(--gold); }
+.stat-label { font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+.stat-val { font-family:'Ma Shan Zheng',serif; font-size:36px; color:var(--ink); }
+.section-title { font-family:'Ma Shan Zheng',serif; font-size:24px; margin-bottom:20px; display:flex; align-items:center; gap:16px; }
+.section-title::after { content:''; flex:1; height:1px; background:rgba(184,134,11,0.3); }
+.games-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.game-card { background:white; border:1px solid rgba(184,134,11,0.2); padding:28px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+.game-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+.game-card.locked { opacity:0.5; cursor:not-allowed; }
+.game-emoji { font-size:36px; margin-bottom:12px; display:block; }
+.game-name { font-size:16px; font-weight:500; margin-bottom:6px; }
+.game-desc { font-size:12px; color:var(--muted); line-height:1.8; }
+.game-best { margin-top:12px; font-size:11px; color:var(--accent); letter-spacing:1px; }
+.coming-badge { position:absolute; top:16px; right:16px; font-size:10px; padding:3px 8px; background:rgba(184,134,11,0.1); color:var(--gold); letter-spacing:1px; }
 
-  /* ── STUDENT DASHBOARD ── */
-  .page { padding: 40px; max-width: 900px; margin: 0 auto; }
-  .page-greeting { font-family: 'Ma Shan Zheng', serif; font-size: 32px; margin-bottom: 4px; }
-  .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; letter-spacing: 1px; }
+/* GAME */
+.game-wrap { padding:40px; max-width:700px; margin:0 auto; }
+.game-header { display:flex; align-items:center; gap:16px; margin-bottom:32px; }
+.back-btn { padding:8px 16px; border:1px solid rgba(184,134,11,0.3); background:transparent; font-size:13px; color:var(--muted); cursor:pointer; font-family:'Noto Sans SC',sans-serif; transition:all 0.2s; }
+.back-btn:hover { border-color:var(--accent); color:var(--accent); }
+.game-title-area { flex:1; }
+.game-title-area h2 { font-family:'Ma Shan Zheng',serif; font-size:24px; }
+.game-title-area p { font-size:12px; color:var(--muted); letter-spacing:1px; }
+.score-box { text-align:center; background:white; border:1px solid rgba(184,134,11,0.3); padding:12px 24px; }
+.score-label { font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
+.score-num { font-family:'Ma Shan Zheng',serif; font-size:32px; color:var(--accent); }
+.match-area { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+.match-col { display:flex; flex-direction:column; gap:10px; }
+.tile { padding:16px; border:1px solid rgba(184,134,11,0.3); background:white; text-align:center; cursor:pointer; font-size:16px; transition:all 0.15s; user-select:none; min-height:56px; display:flex; align-items:center; justify-content:center; }
+.tile:hover { border-color:var(--accent); background:rgba(139,26,26,0.03); }
+.tile.selected { border-color:var(--accent); background:rgba(139,26,26,0.06); color:var(--accent); font-weight:500; }
+.tile.matched { border-color:var(--green); background:rgba(42,125,79,0.06); color:var(--green); cursor:default; }
+.tile.wrong { border-color:var(--red); background:rgba(192,57,43,0.06); animation:shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.result-box { display:none; background:white; border:1px solid rgba(42,125,79,0.3); border-top:3px solid var(--green); padding:32px; text-align:center; }
+.result-box.show { display:block; }
+.result-box h3 { font-family:'Ma Shan Zheng',serif; font-size:28px; margin-bottom:8px; }
+.result-box p { font-size:14px; color:var(--muted); margin-bottom:24px; }
+.result-score { font-family:'Ma Shan Zheng',serif; font-size:56px; color:var(--accent); }
 
-  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
-  .stat-card {
-    background: white;
-    border: 1px solid rgba(184,134,11,0.2);
-    padding: 24px;
-    border-top: 3px solid var(--gold);
-  }
-  .stat-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-  .stat-val { font-family: 'Ma Shan Zheng', serif; font-size: 36px; color: var(--ink); }
+/* TEACHER */
+.teacher-page { padding:40px; max-width:960px; margin:0 auto; }
+.tabs { display:flex; border-bottom:1px solid rgba(184,134,11,0.2); margin-bottom:32px; }
+.tab { padding:12px 20px; font-size:13px; letter-spacing:1px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.2s; }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+.student-table { width:100%; border-collapse:collapse; }
+.student-table th { font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; padding:12px 16px; text-align:left; border-bottom:1px solid rgba(184,134,11,0.2); }
+.student-table td { padding:16px; border-bottom:1px solid rgba(184,134,11,0.1); font-size:13px; }
+.badge { display:inline-block; font-size:10px; letter-spacing:1px; padding:3px 10px; text-transform:uppercase; }
+.badge-pending { background:rgba(184,134,11,0.1); color:var(--gold); }
+.badge-active { background:rgba(42,125,79,0.1); color:var(--green); }
+.approve-btn { padding:6px 14px; background:var(--accent); color:white; border:none; font-size:11px; letter-spacing:1px; cursor:pointer; font-family:'Noto Sans SC',sans-serif; transition:background 0.2s; }
+.approve-btn:hover { background:var(--red); }
 
-  .section-title { font-family: 'Ma Shan Zheng', serif; font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(184,134,11,0.3); }
+/* LESSONS */
+.lessons-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.lesson-card { background:white; border:1px solid rgba(184,134,11,0.2); border-radius:4px; overflow:hidden; }
+.lesson-card-header { padding:16px; border-bottom:1px solid rgba(184,134,11,0.1); display:flex; align-items:flex-start; justify-content:space-between; }
+.lesson-num-badge { font-size:10px; padding:3px 10px; font-weight:500; letter-spacing:1px; background:rgba(139,26,26,0.08); color:var(--accent); margin-bottom:8px; display:inline-block; }
+.lesson-title-t { font-size:15px; font-weight:500; margin-bottom:4px; }
+.lesson-date-t { font-size:11px; color:var(--muted); }
+.lesson-body { padding:16px; }
+.res-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(184,134,11,0.08); }
+.res-row:last-child { border-bottom:none; }
+.res-icon { width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.icon-ppt { background:rgba(192,57,43,0.08); }
+.icon-vocab { background:rgba(139,26,26,0.08); }
+.icon-game { background:rgba(42,125,79,0.08); }
+.icon-empty { background:var(--warm); }
+.res-info { flex:1; min-width:0; }
+.res-name { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.res-sub { font-size:11px; color:var(--muted); }
+.lesson-footer { padding:12px 16px; background:var(--warm); display:flex; gap:8px; }
+.foot-btn { flex:1; padding:7px; font-size:11px; border:1px solid rgba(184,134,11,0.3); background:var(--paper); color:var(--muted); cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.foot-btn:hover { border-color:var(--accent); color:var(--accent); }
+.new-lesson-card { background:var(--warm); border:2px dashed rgba(184,134,11,0.3); border-radius:4px; padding:40px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; cursor:pointer; min-height:220px; transition:all 0.2s; }
+.new-lesson-card:hover { border-color:var(--accent); }
 
-  .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .game-card {
-    background: white;
-    border: 1px solid rgba(184,134,11,0.2);
-    padding: 28px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .game-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-  .game-card.locked { opacity: 0.5; cursor: not-allowed; }
-  .game-emoji { font-size: 36px; margin-bottom: 12px; display: block; }
-  .game-name { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
-  .game-desc { font-size: 12px; color: var(--muted); line-height: 1.8; }
-  .game-best { margin-top: 12px; font-size: 11px; color: var(--accent); letter-spacing: 1px; }
-  .coming-badge {
-    position: absolute; top: 16px; right: 16px;
-    font-size: 10px; padding: 3px 8px;
-    background: rgba(184,134,11,0.1); color: var(--gold);
-    letter-spacing: 1px;
-  }
+/* VOCAB */
+.vocab-add-box { background:white; border:1px solid rgba(184,134,11,0.2); padding:28px; margin-bottom:16px; border-top:3px solid var(--gold); }
+.vocab-import-box { background:white; border:1px solid rgba(184,134,11,0.2); padding:28px; margin-bottom:24px; border-top:3px solid var(--accent); }
+.box-label { font-size:13px; font-weight:500; margin-bottom:16px; letter-spacing:1px; }
+.input-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end; }
+.import-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.import-note { font-size:12px; color:var(--muted); line-height:1.8; margin-bottom:16px; }
 
-  /* ── GAME SCREEN ── */
-  .game-wrap { padding: 40px; max-width: 700px; margin: 0 auto; }
-  .game-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-  .back-btn {
-    padding: 8px 16px; border: 1px solid rgba(184,134,11,0.3);
-    background: transparent; font-size: 13px; color: var(--muted);
-    cursor: pointer; font-family: 'Noto Sans SC', sans-serif;
-    transition: all 0.2s;
-  }
-  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .game-title-area { flex: 1; }
-  .game-title-area h2 { font-family: 'Ma Shan Zheng', serif; font-size: 24px; }
-  .game-title-area p { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
-  .score-box {
-    text-align: center;
-    background: white; border: 1px solid rgba(184,134,11,0.3); padding: 12px 24px;
-  }
-  .score-box .score-label { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
-  .score-box .score-num { font-family: 'Ma Shan Zheng', serif; font-size: 32px; color: var(--accent); }
-
-  .match-area { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .match-col { display: flex; flex-direction: column; gap: 10px; }
-  .tile {
-    padding: 16px;
-    border: 1px solid rgba(184,134,11,0.3);
-    background: white;
-    text-align: center;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.15s;
-    user-select: none;
-    min-height: 56px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .tile:hover { border-color: var(--accent); background: rgba(139,26,26,0.03); }
-  .tile.selected { border-color: var(--accent); background: rgba(139,26,26,0.06); color: var(--accent); font-weight: 500; }
-  .tile.matched { border-color: var(--green); background: rgba(42,125,79,0.06); color: var(--green); cursor: default; }
-  .tile.wrong { border-color: var(--red); background: rgba(192,57,43,0.06); animation: shake 0.3s; }
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
-  }
-  .result-box {
-    display: none;
-    background: white; border: 1px solid rgba(42,125,79,0.3);
-    border-top: 3px solid var(--green);
-    padding: 32px; text-align: center;
-  }
-  .result-box.show { display: block; }
-  .result-box h3 { font-family: 'Ma Shan Zheng', serif; font-size: 28px; margin-bottom: 8px; }
-  .result-box p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
-  .result-score { font-family: 'Ma Shan Zheng', serif; font-size: 56px; color: var(--accent); }
-
-  /* ── TEACHER DASHBOARD ── */
-  .teacher-page { padding: 40px; max-width: 900px; margin: 0 auto; }
-  .tabs { display: flex; border-bottom: 1px solid rgba(184,134,11,0.2); margin-bottom: 32px; }
-  .tab { padding: 12px 24px; font-size: 13px; letter-spacing: 1px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
-
-  .student-table { width: 100%; border-collapse: collapse; }
-  .student-table th { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(184,134,11,0.2); }
-  .student-table td { padding: 16px; border-bottom: 1px solid rgba(184,134,11,0.1); font-size: 13px; }
-  .student-table tr:hover td { background: rgba(184,134,11,0.02); }
-  .badge { display: inline-block; font-size: 10px; letter-spacing: 1px; padding: 3px 10px; text-transform: uppercase; }
-  .badge-pending { background: rgba(184,134,11,0.1); color: var(--gold); }
-  .badge-active { background: rgba(42,125,79,0.1); color: var(--green); }
-  .approve-btn {
-    padding: 6px 14px; background: var(--accent); color: white;
-    border: none; font-size: 11px; letter-spacing: 1px; cursor: pointer;
-    font-family: 'Noto Sans SC', sans-serif; transition: background 0.2s;
-  }
-  .approve-btn:hover { background: var(--red); }
-
-  .lesson-card { background: var(--paper); border: 1px solid rgba(184,134,11,0.2); border-radius: 4px; overflow: hidden; }
-  .lesson-card-header { padding: 16px; border-bottom: 1px solid rgba(184,134,11,0.1); display: flex; align-items: flex-start; justify-content: space-between; }
-  .lesson-num-badge { font-size: 10px; padding: 3px 10px; border-radius: 2px; font-weight: 500; letter-spacing: 1px; background: rgba(139,26,26,0.08); color: var(--accent); margin-bottom: 8px; display: inline-block; }
-  .lesson-title-text { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .lesson-date-text { font-size: 11px; color: var(--muted); }
-  .lesson-body { padding: 16px; }
-  .resource-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(184,134,11,0.08); }
-  .resource-row:last-child { border-bottom: none; }
-  .resource-icon { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-  .icon-ppt { background: rgba(192,57,43,0.08); color: var(--red); }
-  .icon-vocab { background: rgba(139,26,26,0.08); color: var(--accent); }
-  .icon-game { background: rgba(42,125,79,0.08); color: var(--green); }
-  .icon-empty { background: var(--warm); color: var(--muted); }
-  .resource-info { flex: 1; min-width: 0; }
-  .resource-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .resource-sub { font-size: 11px; color: var(--muted); }
-  .lesson-footer { padding: 12px 16px; background: var(--warm); display: flex; gap: 8px; }
-  .lesson-foot-btn { flex: 1; padding: 7px; font-size: 11px; border: 1px solid rgba(184,134,11,0.3); background: var(--paper); color: var(--muted); cursor: pointer; font-family: inherit; transition: all 0.2s; }
-  .lesson-foot-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .new-lesson-card { background: var(--warm); border: 2px dashed rgba(184,134,11,0.3); border-radius: 4px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; min-height: 220px; transition: all 0.2s; }
-  .new-lesson-card:hover { border-color: var(--accent); }
-  .new-lesson-card span { font-size: 13px; color: var(--muted); }
-
-  @media (max-width: 600px) {  @media (max-width: 600px) {
-    .page, .game-wrap, .teacher-page { padding: 20px; }
-    .stats-row { grid-template-columns: 1fr; }
-    .games-grid { grid-template-columns: 1fr; }
-    .match-area { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .topbar { padding: 12px 20px; }
-  }
+@media(max-width:600px){
+  .page,.game-wrap,.teacher-page{padding:20px;}
+  .stats-row{grid-template-columns:1fr;}
+  .games-grid{grid-template-columns:1fr;}
+  .match-area{grid-template-columns:1fr 1fr;gap:8px;}
+  .topbar{padding:12px 20px;}
+  .input-row{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ AUTH SCREEN ═══ -->
+<!-- AUTH -->
 <div class="screen active" id="screen-auth">
   <div class="auth-bg">
     <div class="auth-card">
       <div class="auth-seal">林</div>
-
       <div id="view-login">
         <div class="auth-title">Welcome back</div>
         <div class="auth-sub">Sign in to your Chinese class</div>
         <div id="login-alert"></div>
-        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" /></div>
-        <div class="field"><label>Password</label><input type="password" id="login-pw" placeholder="••••••••" /></div>
+        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="login-pw" placeholder="••••••••"/></div>
         <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign in</button>
         <div class="auth-toggle">New student? <a onclick="showView('register')">Register here</a></div>
       </div>
-
       <div id="view-register" style="display:none">
         <div class="auth-title">Join the class</div>
         <div class="auth-sub">Create your student account</div>
         <div id="reg-alert"></div>
-        <div class="field"><label>Your name</label><input type="text" id="reg-name" placeholder="e.g. Emma Smith" /></div>
-        <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com" /></div>
-        <div class="field"><label>Password</label><input type="password" id="reg-pw" placeholder="min. 8 characters" /></div>
+        <div class="field"><label>Your name</label><input type="text" id="reg-name" placeholder="e.g. Emma Smith"/></div>
+        <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="your@email.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="reg-pw" placeholder="min. 8 characters"/></div>
         <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create account</button>
         <div class="auth-toggle">Already registered? <a onclick="showView('login')">Sign in</a></div>
       </div>
-
       <div id="view-pending" style="display:none">
-        <div class="auth-title">Almost there! 🎉</div>
-        <div class="auth-sub">Your account is waiting for Ms Lin to approve it. You'll be able to sign in once approved!</div>
-        <div style="margin-top:24px" class="alert alert-info">Check back soon — Ms Lin will review your request shortly.</div>
+        <div class="auth-title">Almost there!</div>
+        <div class="auth-sub">Waiting for Ms Lin to approve your account.</div>
+        <div class="alert alert-info" style="margin-top:16px">Check back soon after approval!</div>
         <div class="auth-toggle"><a onclick="showView('login')">Back to sign in</a></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ STUDENT SCREEN ═══ -->
+<!-- STUDENT -->
 <div class="screen" id="screen-student">
   <div class="topbar">
     <div class="topbar-logo">林 · Chinese Class</div>
@@ -391,91 +206,51 @@
       <button class="btn-sm" onclick="doLogout()">Sign out</button>
     </div>
   </div>
-
-  <!-- Pending approval message -->
   <div id="pending-screen" style="display:none">
     <div class="pending-wrap">
       <div class="pending-icon">待</div>
       <div class="pending-title">Waiting for approval</div>
-      <div class="pending-msg">Ms Lin will review your registration soon. Once approved, you'll have full access to games and materials. Come back and sign in again after approval!</div>
+      <div class="pending-msg">Ms Lin will review your registration soon. Come back after approval!</div>
     </div>
   </div>
-
-  <!-- Approved student content -->
   <div id="student-content" style="display:none">
     <div class="page">
       <div class="page-greeting" id="student-greeting">你好！</div>
       <div class="page-sub">Here's your progress this week</div>
-
       <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">Games played</div>
-          <div class="stat-val" id="stat-played">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Best score</div>
-          <div class="stat-val" id="stat-best">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Characters learned</div>
-          <div class="stat-val">10</div>
-        </div>
+        <div class="stat-card"><div class="stat-label">Games played</div><div class="stat-val" id="stat-played">0</div></div>
+        <div class="stat-card"><div class="stat-label">Best score</div><div class="stat-val" id="stat-best">—</div></div>
+        <div class="stat-card"><div class="stat-label">Characters learned</div><div class="stat-val" id="stat-chars">—</div></div>
       </div>
-
       <div class="section-title">Games & Practice</div>
       <div class="games-grid">
         <div class="game-card" onclick="startGame()">
           <span class="game-emoji">🃏</span>
           <div class="game-name">Character match</div>
-          <div class="game-desc">Match Chinese characters to their pinyin. How fast can you go?</div>
+          <div class="game-desc">Match Chinese characters to their pinyin</div>
           <div class="game-best" id="match-best"></div>
         </div>
-        <div class="game-card locked">
-          <span class="coming-badge">COMING SOON</span>
-          <span class="game-emoji">✏️</span>
-          <div class="game-name">Fill in the blank</div>
-          <div class="game-desc">Complete sentences with the right word</div>
-        </div>
-        <div class="game-card locked">
-          <span class="coming-badge">COMING SOON</span>
-          <span class="game-emoji">🎯</span>
-          <div class="game-name">Tone challenge</div>
-          <div class="game-desc">Identify the correct tone for each word</div>
-        </div>
-        <div class="game-card locked">
-          <span class="coming-badge">COMING SOON</span>
-          <span class="game-emoji">📝</span>
-          <div class="game-name">Vocabulary quiz</div>
-          <div class="game-desc">This week's words — are you ready?</div>
-        </div>
+        <div class="game-card locked"><span class="coming-badge">COMING SOON</span><span class="game-emoji">✏️</span><div class="game-name">Fill in the blank</div><div class="game-desc">Complete sentences with the right word</div></div>
+        <div class="game-card locked"><span class="coming-badge">COMING SOON</span><span class="game-emoji">🎯</span><div class="game-name">Tone challenge</div><div class="game-desc">Identify the correct tone for each word</div></div>
+        <div class="game-card locked"><span class="coming-badge">COMING SOON</span><span class="game-emoji">📝</span><div class="game-name">Vocabulary quiz</div><div class="game-desc">This week's words — are you ready?</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ GAME SCREEN ═══ -->
+<!-- GAME -->
 <div class="screen" id="screen-game">
-  <div class="topbar">
-    <div class="topbar-logo">林 · Chinese Class</div>
-  </div>
+  <div class="topbar"><div class="topbar-logo">林 · Chinese Class</div></div>
   <div class="game-wrap">
     <div class="game-header">
       <button class="back-btn" onclick="goBack()">← Back</button>
-      <div class="game-title-area">
-        <h2>Character match</h2>
-        <p>TAP A CHARACTER, THEN ITS PINYIN</p>
-      </div>
-      <div class="score-box">
-        <div class="score-label">Score</div>
-        <div class="score-num" id="live-score">0</div>
-      </div>
+      <div class="game-title-area"><h2>Character match</h2><p>TAP A CHARACTER, THEN ITS PINYIN</p></div>
+      <div class="score-box"><div class="score-label">Score</div><div class="score-num" id="live-score">0</div></div>
     </div>
-
     <div class="match-area">
       <div class="match-col" id="col-chars"></div>
       <div class="match-col" id="col-pinyin"></div>
     </div>
-
     <div class="result-box" id="result-box">
       <h3>Well done! 🎉</h3>
       <p>You matched all the characters!</p>
@@ -486,7 +261,7 @@
   </div>
 </div>
 
-<!-- ═══ TEACHER SCREEN ═══ -->
+<!-- TEACHER -->
 <div class="screen" id="screen-teacher">
   <div class="topbar">
     <div class="topbar-logo">林 · Teacher Dashboard</div>
@@ -499,28 +274,19 @@
     </div>
   </div>
   <div class="teacher-page">
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Total students</div>
-        <div class="stat-val" id="t-total">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pending approval</div>
-        <div class="stat-val" id="t-pending" style="color:var(--gold)">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Active students</div>
-        <div class="stat-val" id="t-active" style="color:var(--green)">—</div>
-      </div>
+    <div class="stats-row" style="margin-bottom:32px">
+      <div class="stat-card"><div class="stat-label">Total students</div><div class="stat-val" id="t-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Pending approval</div><div class="stat-val" id="t-pending" style="color:var(--gold)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Active students</div><div class="stat-val" id="t-active" style="color:var(--green)">—</div></div>
     </div>
-
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('students', this)">Students</div>
-      <div class="tab" onclick="switchTab('scores', this)">Game Scores</div>
-      <div class="tab" onclick="switchTab('lessons', this)">Lessons</div>
-      <div class="tab" onclick="switchTab('vocab', this)">Vocabulary</div>
+      <div class="tab active" onclick="switchTab('students',this)">Students</div>
+      <div class="tab" onclick="switchTab('scores',this)">Game Scores</div>
+      <div class="tab" onclick="switchTab('lessons',this)">Lessons</div>
+      <div class="tab" onclick="switchTab('vocab',this)">Vocabulary</div>
     </div>
 
+    <!-- STUDENTS TAB -->
     <div class="tab-pane active" id="pane-students">
       <table class="student-table">
         <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
@@ -528,6 +294,7 @@
       </table>
     </div>
 
+    <!-- SCORES TAB -->
     <div class="tab-pane" id="pane-scores">
       <table class="student-table">
         <thead><tr><th>Student</th><th>Game</th><th>Score</th><th>Date</th></tr></thead>
@@ -535,51 +302,47 @@
       </table>
     </div>
 
+    <!-- LESSONS TAB -->
     <div class="tab-pane" id="pane-lessons">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
         <div style="font-size:15px;font-weight:500">Lesson modules</div>
-        <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="showNewLessonForm()">+ New lesson</button>
+        <button class="btn-primary" style="width:auto;padding:10px 20px;font-size:13px" onclick="showNewLessonForm()">+ New lesson</button>
       </div>
-
       <div id="new-lesson-form" style="display:none;background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--accent)">
-        <div style="font-size:13px;font-weight:500;margin-bottom:16px;letter-spacing:1px">CREATE NEW LESSON</div>
-        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:12px;align-items:end;flex-wrap:wrap">
-          <div class="field" style="margin:0"><label>Lesson number</label><input type="number" id="new-lesson-num" placeholder="e.g. 4" style="width:100px" /></div>
-          <div class="field" style="margin:0"><label>Title</label><input type="text" id="new-lesson-title" placeholder="e.g. Food & eating" /></div>
-          <div class="field" style="margin:0"><label>Date</label><input type="date" id="new-lesson-date" /></div>
+        <div class="box-label">CREATE NEW LESSON</div>
+        <div style="display:grid;grid-template-columns:100px 1fr 160px;gap:12px;align-items:end">
+          <div class="field" style="margin:0"><label>Lesson #</label><input type="number" id="new-lesson-num" placeholder="4"/></div>
+          <div class="field" style="margin:0"><label>Title</label><input type="text" id="new-lesson-title" placeholder="e.g. Food & eating"/></div>
+          <div class="field" style="margin:0"><label>Date</label><input type="date" id="new-lesson-date"/></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:16px">
-          <button class="btn-primary" style="padding:10px 20px" onclick="createLesson()">Create lesson</button>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="createLesson()">Create</button>
           <button class="btn-sm" onclick="hideNewLessonForm()">Cancel</button>
         </div>
         <div id="new-lesson-alert" style="margin-top:12px"></div>
       </div>
-
-      <div id="lessons-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+      <div class="lessons-grid" id="lessons-grid"></div>
     </div>
 
+    <!-- VOCAB TAB -->
     <div class="tab-pane" id="pane-vocab">
-      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:16px;border-top:3px solid var(--gold)">
-        <div style="font-size:13px;font-weight:500;margin-bottom:16px;letter-spacing:1px">ADD NEW WORD</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
-          <div class="field" style="margin:0"><label>Chinese character</label><input type="text" id="new-char" placeholder="e.g. 朋友" /></div>
-          <div class="field" style="margin:0"><label>Pinyin</label><input type="text" id="new-pin" placeholder="e.g. peng you" /></div>
-          <div class="field" style="margin:0"><label>Lesson (optional)</label><input type="text" id="new-lesson" placeholder="e.g. Lesson 2" /></div>
-          <button class="btn-primary" style="padding:12px 20px;white-space:nowrap" onclick="addVocab()">+ Add word</button>
+      <div class="vocab-add-box">
+        <div class="box-label">ADD NEW WORD</div>
+        <div class="input-row">
+          <div class="field" style="margin:0"><label>Chinese character</label><input type="text" id="new-char" placeholder="e.g. 朋友"/></div>
+          <div class="field" style="margin:0"><label>Pinyin</label><input type="text" id="new-pin" placeholder="e.g. péng yǒu"/></div>
+          <div class="field" style="margin:0"><label>Lesson (optional)</label><input type="text" id="new-lesson-tag" placeholder="e.g. Lesson 2"/></div>
+          <button class="btn-primary" style="width:auto;padding:12px 20px;white-space:nowrap" onclick="addVocab()">+ Add</button>
         </div>
         <div id="vocab-alert" style="margin-top:12px"></div>
       </div>
-
-      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--accent)">
-        <div style="font-size:13px;font-weight:500;margin-bottom:8px;letter-spacing:1px">BULK IMPORT FROM EXCEL</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.8">
-          Upload an Excel file (.xlsx) with 3 columns: <strong>character</strong>, <strong>pinyin</strong>, <strong>lesson</strong><br>
-          First row should be the column headers.
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <input type="file" id="excel-upload" accept=".xlsx,.xls" style="font-size:13px;color:var(--muted)" />
-          <button class="btn-primary" style="padding:12px 24px;white-space:nowrap" onclick="importExcel()">Import Excel</button>
-          <a href="#" onclick="downloadTemplate()" style="font-size:12px;color:var(--accent);letter-spacing:1px">Download template</a>
+      <div class="vocab-import-box">
+        <div class="box-label">BULK IMPORT FROM EXCEL</div>
+        <div class="import-note">Upload an .xlsx file with columns: <strong>character</strong>, <strong>pinyin</strong>, <strong>lesson</strong> (first row = headers)</div>
+        <div class="import-row">
+          <input type="file" id="excel-upload" accept=".xlsx,.xls" style="font-size:13px;color:var(--muted)"/>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="importExcel()">Import Excel</button>
+          <a href="#" onclick="downloadTemplate();return false;" style="font-size:12px;color:var(--accent)">Download template ↓</a>
         </div>
         <div id="excel-alert" style="margin-top:12px"></div>
       </div>
@@ -592,53 +355,39 @@
 </div>
 
 <script>
-// ─── SUPABASE SETUP ───
 const SUPABASE_URL = 'https://fdyklvavcvaklojqcgiz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PpO8RU0maY3MM7XA8dZLbg_jnX0PesL';
+const TEACHER_EMAIL = 'skylarllf517@gmail.com';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Teacher email — change this to your real email
-const TEACHER_EMAIL = 'skylarllf517@gmail.com';
-
-// ─── GAME DATA (loaded from Supabase) ───
 let pairs = [];
+let selChar = null, selPin = null, matched = [], score = 0, currentUser = null;
 
-async function loadVocab() {
-  const { data } = await sb.from('vocab').select('*').eq('active', true).order('created_at');
-  if (data && data.length > 0) {
-    pairs = data.map(v => ({ char: v.character, pin: v.pinyin }));
-  }
-}
-
-let selChar = null, selPin = null, matched = [], score = 0, currentUser = null, userProfile = null;
-
-// ─── SCREEN MANAGEMENT ───
 function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 
 function showView(v) {
-  ['login','register','pending'].forEach(id => {
-    document.getElementById('view-' + id).style.display = id === v ? 'block' : 'none';
-  });
+  document.getElementById('view-login').style.display = v==='login' ? 'block' : 'none';
+  document.getElementById('view-register').style.display = v==='register' ? 'block' : 'none';
+  document.getElementById('view-pending').style.display = v==='pending' ? 'block' : 'none';
 }
 
-// ─── AUTH ───
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-pw').value;
-  const btn = document.getElementById('login-btn');
-  const alertEl = document.getElementById('login-alert');
+  var email = document.getElementById('login-email').value.trim();
+  var pw = document.getElementById('login-pw').value;
+  var btn = document.getElementById('login-btn');
+  var alertEl = document.getElementById('login-alert');
   alertEl.innerHTML = '';
   if (!email || !pw) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>'; return; }
   btn.disabled = true; btn.textContent = 'Signing in...';
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    var result = await sb.auth.signInWithPassword({ email: email, password: pw });
     btn.disabled = false; btn.textContent = 'Sign in';
-    if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
-    if (data && data.user) { await handleUser(data.user); }
+    if (result.error) { alertEl.innerHTML = '<div class="alert alert-error">' + result.error.message + '</div>'; return; }
+    if (result.data && result.data.user) { await handleUser(result.data.user); }
   } catch(e) {
     btn.disabled = false; btn.textContent = 'Sign in';
     alertEl.innerHTML = '<div class="alert alert-error">Connection error. Please try again.</div>';
@@ -646,30 +395,28 @@ async function doLogin() {
 }
 
 async function doRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pw = document.getElementById('reg-pw').value;
-  const btn = document.getElementById('reg-btn');
-  const alertEl = document.getElementById('reg-alert');
+  var name = document.getElementById('reg-name').value.trim();
+  var email = document.getElementById('reg-email').value.trim();
+  var pw = document.getElementById('reg-pw').value;
+  var btn = document.getElementById('reg-btn');
+  var alertEl = document.getElementById('reg-alert');
   alertEl.innerHTML = '';
   if (!name || !email || !pw) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>'; return; }
   if (pw.length < 8) { alertEl.innerHTML = '<div class="alert alert-error">Password must be at least 8 characters.</div>'; return; }
   btn.disabled = true; btn.textContent = 'Creating account...';
-  const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { full_name: name } } });
+  var result = await sb.auth.signUp({ email: email, password: pw, options: { data: { full_name: name } } });
   btn.disabled = false; btn.textContent = 'Create account';
-  if (error) { alertEl.innerHTML = `<div class="alert alert-error">${error.message}</div>`; return; }
-  // Insert profile as pending
-  await sb.from('profiles').insert({ id: data.user.id, full_name: name, email, status: 'pending' });
+  if (result.error) { alertEl.innerHTML = '<div class="alert alert-error">' + result.error.message + '</div>'; return; }
+  await sb.from('profiles').insert({ id: result.data.user.id, full_name: name, email: email, status: 'pending' });
   showView('pending');
 }
 
 async function doLogout() {
   await sb.auth.signOut();
-  currentUser = null; userProfile = null;
+  currentUser = null;
   show('screen-auth'); showView('login');
 }
 
-// ─── HANDLE USER AFTER LOGIN ───
 async function handleUser(user) {
   currentUser = user;
   if (user.email === TEACHER_EMAIL) {
@@ -677,12 +424,11 @@ async function handleUser(user) {
     loadTeacherData();
     return;
   }
-  // Load student profile
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  userProfile = profile;
+  var result = await sb.from('profiles').select('*').eq('id', user.id).single();
+  var profile = result.data;
   show('screen-student');
-  const name = profile?.full_name || user.email;
-  const initial = name.charAt(0).toUpperCase();
+  var name = (profile && profile.full_name) ? profile.full_name : user.email;
+  var initial = name.charAt(0).toUpperCase();
   document.getElementById('student-avatar').textContent = initial;
   document.getElementById('student-name-display').textContent = name.split(' ')[0];
   document.getElementById('student-greeting').textContent = '你好，' + name.split(' ')[0] + '！';
@@ -693,47 +439,61 @@ async function handleUser(user) {
     document.getElementById('pending-screen').style.display = 'none';
     document.getElementById('student-content').style.display = 'block';
     loadStudentStats(user.id);
+    loadVocabCount();
   }
 }
 
-// ─── STUDENT STATS ───
 async function loadStudentStats(uid) {
-  const { data: scores } = await sb.from('game_scores').select('*').eq('user_id', uid);
+  var result = await sb.from('game_scores').select('*').eq('user_id', uid);
+  var scores = result.data;
   if (!scores || scores.length === 0) return;
   document.getElementById('stat-played').textContent = scores.length;
-  const best = Math.max(...scores.map(s => s.score));
+  var best = Math.max.apply(null, scores.map(function(s){ return s.score; }));
   document.getElementById('stat-best').textContent = best;
-  const matchBest = scores.filter(s => s.game === 'character-match');
+  var matchBest = scores.filter(function(s){ return s.game === 'character-match'; });
   if (matchBest.length > 0) {
-    document.getElementById('match-best').textContent = 'Best: ' + Math.max(...matchBest.map(s => s.score)) + ' pts';
+    document.getElementById('match-best').textContent = 'Best: ' + Math.max.apply(null, matchBest.map(function(s){ return s.score; })) + ' pts';
   }
 }
 
-// ─── GAME ───
+async function loadVocabCount() {
+  var result = await sb.from('vocab').select('id').eq('active', true);
+  if (result.data) document.getElementById('stat-chars').textContent = result.data.length;
+}
+
+async function loadVocab() {
+  var result = await sb.from('vocab').select('*').eq('active', true).order('created_at');
+  if (result.data && result.data.length > 0) {
+    pairs = result.data.map(function(v){ return { char: v.character, pin: v.pinyin }; });
+  }
+}
+
 async function startGame() {
   await loadVocab();
+  if (pairs.length === 0) { alert('No vocabulary loaded yet. Please ask Ms Lin to add some words!'); return; }
   score = 0; matched = []; selChar = null; selPin = null;
   document.getElementById('live-score').textContent = '0';
   document.getElementById('result-box').classList.remove('show');
-  const shuffledChars = [...pairs].sort(() => Math.random() - 0.5);
-  const shuffledPins = [...pairs].sort(() => Math.random() - 0.5);
-  const cc = document.getElementById('col-chars');
-  const cp = document.getElementById('col-pinyin');
+  var usePairs = pairs.slice().sort(function(){ return Math.random()-0.5; }).slice(0, Math.min(5, pairs.length));
+  var shuffledChars = usePairs.slice().sort(function(){ return Math.random()-0.5; });
+  var shuffledPins = usePairs.slice().sort(function(){ return Math.random()-0.5; });
+  var cc = document.getElementById('col-chars');
+  var cp = document.getElementById('col-pinyin');
   cc.innerHTML = ''; cp.innerHTML = '';
-  shuffledChars.forEach(p => {
-    const t = makeTile(p.char, 'char', p.char); cc.appendChild(t);
+  shuffledChars.forEach(function(p){
+    var t = makeTile(p.char, 'char', p.char); cc.appendChild(t);
   });
-  shuffledPins.forEach(p => {
-    const t = makeTile(p.pin, 'pin', p.char); cp.appendChild(t);
+  shuffledPins.forEach(function(p){
+    var t = makeTile(p.pin, 'pin', p.char); cp.appendChild(t);
   });
   show('screen-game');
 }
 
 function makeTile(text, col, key) {
-  const t = document.createElement('div');
+  var t = document.createElement('div');
   t.className = 'tile'; t.textContent = text;
   t.dataset.key = key; t.dataset.col = col;
-  t.onclick = () => selectTile(t, col, key);
+  t.onclick = function(){ selectTile(t, col, key); };
   return t;
 }
 
@@ -753,61 +513,60 @@ function selectTile(el, col, key) {
       score += 150; document.getElementById('live-score').textContent = score;
       matched.push(selChar.dataset.key);
       selChar = null; selPin = null;
-      if (matched.length === pairs.length) setTimeout(finishGame, 400);
+      var total = document.getElementById('col-chars').querySelectorAll('.matched').length;
+      var allTiles = document.getElementById('col-chars').querySelectorAll('.tile').length;
+      if (total === allTiles) { setTimeout(finishGame, 400); }
     } else {
-      const ce = selChar, pe = selPin;
+      var ce = selChar, pe = selPin;
       ce.classList.add('wrong'); pe.classList.add('wrong');
-      setTimeout(() => { ce.classList.remove('selected','wrong'); pe.classList.remove('selected','wrong'); }, 500);
+      setTimeout(function(){ ce.classList.remove('selected','wrong'); pe.classList.remove('selected','wrong'); }, 500);
       selChar = null; selPin = null;
     }
   }
 }
 
 async function finishGame() {
-  const finalScore = score;
-  document.getElementById('result-score').textContent = finalScore;
+  document.getElementById('result-score').textContent = score;
   document.getElementById('result-box').classList.add('show');
   if (currentUser) {
-    await sb.from('game_scores').insert({ user_id: currentUser.id, game: 'character-match', score: finalScore });
+    await sb.from('game_scores').insert({ user_id: currentUser.id, game: 'character-match', score: score });
     loadStudentStats(currentUser.id);
   }
 }
 
 function goBack() { show('screen-student'); }
 
-// ─── TEACHER ───
 async function loadTeacherData() {
-  loadVocabTable();
   loadLessons();
-  const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-  const { data: scores } = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
+  loadVocabTable();
+  var pr = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+  var sr = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
+  var profiles = pr.data; var scores = sr.data;
   if (profiles) {
-    const pending = profiles.filter(p => p.status === 'pending').length;
-    const active = profiles.filter(p => p.status === 'approved').length;
+    var pending = profiles.filter(function(p){ return p.status === 'pending'; }).length;
+    var active = profiles.filter(function(p){ return p.status === 'approved'; }).length;
     document.getElementById('t-total').textContent = profiles.length;
     document.getElementById('t-pending').textContent = pending;
     document.getElementById('t-active').textContent = active;
-    const tbody = document.getElementById('student-tbody');
+    var tbody = document.getElementById('student-tbody');
     tbody.innerHTML = '';
-    profiles.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${p.full_name || '—'}</strong></td>
-        <td>${p.email}</td>
-        <td><span class="badge badge-${p.status === 'approved' ? 'active' : 'pending'}">${p.status}</span></td>
-        <td>${p.status === 'pending' ? `<button class="approve-btn" onclick="approveStudent('${p.id}', this)">Approve</button>` : '✓ Approved'}</td>
-      `;
+    profiles.forEach(function(p){
+      var tr = document.createElement('tr');
+      var approveCell = p.status === 'pending'
+        ? '<button class="approve-btn" onclick="approveStudent(\'' + p.id + '\', this)">Approve</button>'
+        : '<span style="font-size:12px;color:var(--muted)">Approved</span>';
+      tr.innerHTML = '<td><strong>' + (p.full_name||'—') + '</strong></td><td>' + p.email + '</td><td><span class="badge badge-' + (p.status==='approved'?'active':'pending') + '">' + p.status + '</span></td><td>' + approveCell + '</td>';
       tbody.appendChild(tr);
     });
   }
   if (scores) {
-    const tbody = document.getElementById('scores-tbody');
-    tbody.innerHTML = '';
-    scores.forEach(s => {
-      const tr = document.createElement('tr');
-      const date = new Date(s.created_at).toLocaleDateString('en-GB');
-      tr.innerHTML = `<td>${s.profiles?.full_name || '—'}</td><td>${s.game}</td><td><strong>${s.score}</strong></td><td>${date}</td>`;
-      tbody.appendChild(tr);
+    var tbody2 = document.getElementById('scores-tbody');
+    tbody2.innerHTML = '';
+    scores.forEach(function(s){
+      var tr = document.createElement('tr');
+      var date = new Date(s.created_at).toLocaleDateString('en-GB');
+      tr.innerHTML = '<td>' + ((s.profiles && s.profiles.full_name) || '—') + '</td><td>' + s.game + '</td><td><strong>' + s.score + '</strong></td><td>' + date + '</td>';
+      tbody2.appendChild(tr);
     });
   }
 }
@@ -819,38 +578,29 @@ async function approveStudent(uid, btn) {
 }
 
 function switchTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-pane').forEach(function(t){ t.classList.remove('active'); });
   el.classList.add('active');
   document.getElementById('pane-' + id).classList.add('active');
 }
 
-// ─── LESSON MANAGEMENT ───
-function goToVocabTab() {
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
-  tabs[3].classList.add('active');
-  document.getElementById('pane-vocab').classList.add('active');
-}
-
+// LESSONS
 function showNewLessonForm() {
   document.getElementById('new-lesson-form').style.display = 'block';
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('new-lesson-date').value = today;
+  document.getElementById('new-lesson-date').value = new Date().toISOString().split('T')[0];
 }
 function hideNewLessonForm() {
   document.getElementById('new-lesson-form').style.display = 'none';
 }
 
 async function createLesson() {
-  const num = document.getElementById('new-lesson-num').value;
-  const title = document.getElementById('new-lesson-title').value.trim();
-  const date = document.getElementById('new-lesson-date').value;
-  const alertEl = document.getElementById('new-lesson-alert');
+  var num = document.getElementById('new-lesson-num').value;
+  var title = document.getElementById('new-lesson-title').value.trim();
+  var date = document.getElementById('new-lesson-date').value;
+  var alertEl = document.getElementById('new-lesson-alert');
   if (!num || !title) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in lesson number and title.</div>'; return; }
-  const { error } = await sb.from('lessons').insert({ lesson_number: parseInt(num), title, lesson_date: date || null });
-  if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
+  var result = await sb.from('lessons').insert({ lesson_number: parseInt(num), title: title, lesson_date: date || null });
+  if (result.error) { alertEl.innerHTML = '<div class="alert alert-error">' + result.error.message + '</div>'; return; }
   hideNewLessonForm();
   document.getElementById('new-lesson-num').value = '';
   document.getElementById('new-lesson-title').value = '';
@@ -858,68 +608,80 @@ async function createLesson() {
 }
 
 async function loadLessons() {
-  const { data: lessons } = await sb.from('lessons').select('*').order('lesson_number');
-  const { data: files } = await sb.from('lesson_files').select('*');
-  const { data: vocab } = await sb.from('vocab').select('*');
-  const { data: scores } = await sb.from('game_scores').select('*');
-  const grid = document.getElementById('lessons-grid');
+  var lr = await sb.from('lessons').select('*').order('lesson_number');
+  var fr = await sb.from('lesson_files').select('*');
+  var vr = await sb.from('vocab').select('*');
+  var scr = await sb.from('game_scores').select('*');
+  var lessons = lr.data; var files = fr.data || []; var vocab = vr.data || []; var scores = scr.data || [];
+  var grid = document.getElementById('lessons-grid');
   if (!grid) return;
   grid.innerHTML = '';
   if (lessons) {
-    lessons.forEach(lesson => {
-      const lessonFiles = (files || []).filter(f => f.lesson_id === lesson.id);
-      const pptFile = lessonFiles.find(f => f.file_type === 'ppt');
-      const lessonVocab = (vocab || []).filter(v => v.lesson === 'Lesson ' + lesson.lesson_number);
-      const lessonScores = (scores || []);
-      const dateStr = lesson.lesson_date ? new Date(lesson.lesson_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date set';
-      const avgScore = lessonScores.length ? Math.round(lessonScores.reduce((a,b) => a + b.score, 0) / lessonScores.length) : null;
+    lessons.forEach(function(lesson){
+      var pptFile = files.find(function(f){ return f.lesson_id === lesson.id && f.file_type === 'ppt'; });
+      var lessonVocab = vocab.filter(function(v){ return v.lesson === 'Lesson ' + lesson.lesson_number; });
+      var avgScore = scores.length ? Math.round(scores.reduce(function(a,b){ return a + b.score; }, 0) / scores.length) : null;
+      var dateStr = lesson.lesson_date ? new Date(lesson.lesson_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : 'No date set';
 
-      const card = document.createElement('div');
+      var card = document.createElement('div');
       card.className = 'lesson-card';
-      card.innerHTML =
-        '<div class="lesson-card-header">' +
-          '<div>' +
-            '<div class="lesson-num-badge">LESSON ' + lesson.lesson_number + '</div>' +
-            '<div class="lesson-title-text">' + lesson.title + '</div>' +
-            '<div class="lesson-date-text">' + dateStr + '</div>' +
-          '</div>' +
-          '<span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="deleteLesson('' + lesson.id + '')">···</span>' +
-        '</div>' +
-        '<div class="lesson-body">' +
-          '<div class="resource-row">' +
-            '<div class="resource-icon ' + (pptFile ? 'icon-ppt' : 'icon-empty') + '">📊</div>' +
-            '<div class="resource-info">' +
-              '<div class="resource-name">' + (pptFile ? pptFile.file_name : 'No slides yet') + '</div>' +
-              '<div class="resource-sub">' + (pptFile ? pptFile.file_size + ' · uploaded ' + new Date(pptFile.created_at).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : 'Upload a PPT for this lesson') + '</div>' +
-            '</div>' +
-            (pptFile ? '<a href="' + pptFile.file_url + '" target="_blank" style="font-size:13px;color:var(--muted)">↓</a>' : '') +
-          '</div>' +
-          '<div class="resource-row">' +
-            '<div class="resource-icon icon-vocab">📝</div>' +
-            '<div class="resource-info">' +
-              '<div class="resource-name">' + (lessonVocab.length ? lessonVocab.length + ' words' : 'No vocab yet') + '</div>' +
-              '<div class="resource-sub">' + (lessonVocab.length ? lessonVocab.slice(0,3).map(v=>v.character).join(', ') + (lessonVocab.length > 3 ? '…' : '') : 'Add vocab for this lesson') + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="resource-row">' +
-            '<div class="resource-icon icon-game">🎮</div>' +
-            '<div class="resource-info">' +
-              '<div class="resource-name">' + (lessonScores.length ? lessonScores.length + ' plays' : 'Not played yet') + '</div>' +
-              '<div class="resource-sub">' + (avgScore ? 'Avg score: ' + avgScore : 'No game data yet') + '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="lesson-footer">' +
-          '<button class="lesson-foot-btn" onclick="uploadPPT('' + lesson.id + '')">↑ Upload PPT</button>' +
-          '<button class="lesson-foot-btn" onclick="goToVocabTab()">+ Add vocab</button>' +
-        '</div>';
+
+      var header = document.createElement('div');
+      header.className = 'lesson-card-header';
+      header.innerHTML = '<div><div class="lesson-num-badge">LESSON ' + lesson.lesson_number + '</div><div class="lesson-title-t">' + lesson.title + '</div><div class="lesson-date-t">' + dateStr + '</div></div>';
+      var delBtn = document.createElement('span');
+      delBtn.style.cssText = 'cursor:pointer;color:var(--muted);font-size:18px;padding:0 4px';
+      delBtn.textContent = '···';
+      delBtn.onclick = (function(id){ return function(){ deleteLesson(id); }; })(lesson.id);
+      header.appendChild(delBtn);
+
+      var body = document.createElement('div');
+      body.className = 'lesson-body';
+
+      var pptRow = document.createElement('div');
+      pptRow.className = 'res-row';
+      pptRow.innerHTML = '<div class="res-icon ' + (pptFile ? 'icon-ppt' : 'icon-empty') + '">📊</div><div class="res-info"><div class="res-name">' + (pptFile ? pptFile.file_name : 'No slides yet') + '</div><div class="res-sub">' + (pptFile ? pptFile.file_size : 'Upload a PPT for this lesson') + '</div></div>';
+      if (pptFile) {
+        var dlLink = document.createElement('a');
+        dlLink.href = pptFile.file_url; dlLink.target = '_blank';
+        dlLink.style.cssText = 'font-size:13px;color:var(--muted);text-decoration:none';
+        dlLink.textContent = '↓';
+        pptRow.appendChild(dlLink);
+      }
+
+      var vocabRow = document.createElement('div');
+      vocabRow.className = 'res-row';
+      vocabRow.innerHTML = '<div class="res-icon icon-vocab">📝</div><div class="res-info"><div class="res-name">' + (lessonVocab.length ? lessonVocab.length + ' words' : 'No vocab yet') + '</div><div class="res-sub">' + (lessonVocab.length ? lessonVocab.slice(0,3).map(function(v){ return v.character; }).join(', ') + (lessonVocab.length > 3 ? '…' : '') : 'Add vocab for this lesson') + '</div></div>';
+
+      var gameRow = document.createElement('div');
+      gameRow.className = 'res-row';
+      gameRow.innerHTML = '<div class="res-icon icon-game">🎮</div><div class="res-info"><div class="res-name">' + (scores.length ? scores.length + ' plays total' : 'Not played yet') + '</div><div class="res-sub">' + (avgScore ? 'Avg score: ' + avgScore : 'No game data yet') + '</div></div>';
+
+      body.appendChild(pptRow); body.appendChild(vocabRow); body.appendChild(gameRow);
+
+      var footer = document.createElement('div');
+      footer.className = 'lesson-footer';
+      var uploadBtn = document.createElement('button');
+      uploadBtn.className = 'foot-btn'; uploadBtn.textContent = '↑ Upload PPT';
+      uploadBtn.onclick = (function(id){ return function(){ uploadPPT(id); }; })(lesson.id);
+      var vocabBtn = document.createElement('button');
+      vocabBtn.className = 'foot-btn'; vocabBtn.textContent = '+ Add vocab';
+      vocabBtn.onclick = function(){
+        document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+        document.querySelectorAll('.tab-pane').forEach(function(t){ t.classList.remove('active'); });
+        document.querySelectorAll('.tab')[3].classList.add('active');
+        document.getElementById('pane-vocab').classList.add('active');
+      };
+      footer.appendChild(uploadBtn); footer.appendChild(vocabBtn);
+
+      card.appendChild(header); card.appendChild(body); card.appendChild(footer);
       grid.appendChild(card);
     });
   }
-  const addCard = document.createElement('div');
+  var addCard = document.createElement('div');
   addCard.className = 'new-lesson-card';
   addCard.onclick = showNewLessonForm;
-  addCard.innerHTML = '<span style="font-size:32px;color:var(--muted)">+</span><span>Create new lesson</span>';
+  addCard.innerHTML = '<span style="font-size:32px;color:var(--muted)">+</span><span style="font-size:13px;color:var(--muted)">Create new lesson</span>';
   grid.appendChild(addCard);
 }
 
@@ -930,18 +692,17 @@ async function deleteLesson(id) {
 }
 
 function uploadPPT(lessonId) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.ppt,.pptx,.pdf';
-  input.onchange = async function() {
-    const file = input.files[0];
+  var input = document.createElement('input');
+  input.type = 'file'; input.accept = '.ppt,.pptx,.pdf';
+  input.onchange = async function(){
+    var file = input.files[0];
     if (!file) return;
-    const sizeMB = (file.size / 1024 / 1024).toFixed(1) + ' MB';
-    const { error: uploadError } = await sb.storage.from('lesson-files').upload(lessonId + '/' + file.name, file, { upsert: true });
-    let fileUrl = '';
-    if (!uploadError) {
-      const { data } = sb.storage.from('lesson-files').getPublicUrl(lessonId + '/' + file.name);
-      fileUrl = data.publicUrl;
+    var sizeMB = (file.size/1024/1024).toFixed(1) + ' MB';
+    var uploadResult = await sb.storage.from('lesson-files').upload(lessonId + '/' + file.name, file, { upsert: true });
+    var fileUrl = '';
+    if (!uploadResult.error) {
+      var urlResult = sb.storage.from('lesson-files').getPublicUrl(lessonId + '/' + file.name);
+      fileUrl = urlResult.data.publicUrl;
     }
     await sb.from('lesson_files').upsert({ lesson_id: lessonId, file_name: file.name, file_url: fileUrl, file_type: 'ppt', file_size: sizeMB });
     loadLessons();
@@ -949,43 +710,43 @@ function uploadPPT(lessonId) {
   input.click();
 }
 
-// ─── VOCAB MANAGEMENT ───
+// VOCAB
 async function loadVocabTable() {
-  const { data } = await sb.from('vocab').select('*').order('created_at');
-  const tbody = document.getElementById('vocab-tbody');
+  var result = await sb.from('vocab').select('*').order('created_at');
+  var tbody = document.getElementById('vocab-tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
-  if (!data) return;
-  data.forEach(v => {
-    const tr = document.createElement('tr');
-    const btn = document.createElement('button');
-    btn.className = 'approve-btn';
-    btn.style.background = '#c0392b';
-    btn.textContent = 'Delete';
-    btn.onclick = function() { deleteVocab(v.id, btn); };
-    const td1 = document.createElement('td'); td1.innerHTML = '<strong style="font-size:18px">' + v.character + '</strong>';
-    const td2 = document.createElement('td'); td2.textContent = v.pinyin;
-    const td3 = document.createElement('td'); td3.textContent = v.lesson || '—';
-    const td4 = document.createElement('td'); td4.innerHTML = '<span class="badge ' + (v.active ? 'badge-active' : 'badge-pending') + '">' + (v.active ? 'Active' : 'Hidden') + '</span>';
-    const td5 = document.createElement('td'); td5.appendChild(btn);
+  if (!result.data) return;
+  result.data.forEach(function(v){
+    var tr = document.createElement('tr');
+    var td1 = document.createElement('td'); td1.innerHTML = '<strong style="font-size:18px">' + v.character + '</strong>';
+    var td2 = document.createElement('td'); td2.textContent = v.pinyin;
+    var td3 = document.createElement('td'); td3.textContent = v.lesson || '—';
+    var td4 = document.createElement('td'); td4.innerHTML = '<span class="badge badge-' + (v.active ? 'active' : 'pending') + '">' + (v.active ? 'Active' : 'Hidden') + '</span>';
+    var td5 = document.createElement('td');
+    var btn = document.createElement('button');
+    btn.className = 'approve-btn'; btn.style.background = '#c0392b'; btn.textContent = 'Delete';
+    btn.onclick = (function(vid){ return function(){ deleteVocab(vid, btn); }; })(v.id);
+    td5.appendChild(btn);
     tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4); tr.appendChild(td5);
     tbody.appendChild(tr);
   });
 }
 
 async function addVocab() {
-  const char = document.getElementById('new-char').value.trim();
-  const pin = document.getElementById('new-pin').value.trim();
-  const lesson = document.getElementById('new-lesson').value.trim();
-  const alertEl = document.getElementById('vocab-alert');
+  var char = document.getElementById('new-char').value.trim();
+  var pin = document.getElementById('new-pin').value.trim();
+  var lesson = document.getElementById('new-lesson-tag').value.trim();
+  var alertEl = document.getElementById('vocab-alert');
+  alertEl.innerHTML = '';
   if (!char || !pin) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in character and pinyin.</div>'; return; }
-  const { error } = await sb.from('vocab').insert({ character: char, pinyin: pin, lesson: lesson || null, active: true });
-  if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
+  var result = await sb.from('vocab').insert({ character: char, pinyin: pin, lesson: lesson || null, active: true });
+  if (result.error) { alertEl.innerHTML = '<div class="alert alert-error">' + result.error.message + '</div>'; return; }
   document.getElementById('new-char').value = '';
   document.getElementById('new-pin').value = '';
-  document.getElementById('new-lesson').value = '';
-  alertEl.innerHTML = '<div class="alert alert-success">Word added! Game will use this next time.</div>';
-  setTimeout(() => { alertEl.innerHTML = ''; }, 3000);
+  document.getElementById('new-lesson-tag').value = '';
+  alertEl.innerHTML = '<div class="alert alert-success">Word added!</div>';
+  setTimeout(function(){ alertEl.innerHTML = ''; }, 3000);
   loadVocabTable();
 }
 
@@ -996,68 +757,54 @@ async function deleteVocab(id, btn) {
   loadVocabTable();
 }
 
-// ─── EXCEL IMPORT ───
 async function importExcel() {
-  const fileInput = document.getElementById('excel-upload');
-  const alertEl = document.getElementById('excel-alert');
+  var fileInput = document.getElementById('excel-upload');
+  var alertEl = document.getElementById('excel-alert');
   alertEl.innerHTML = '';
   if (!fileInput.files || fileInput.files.length === 0) {
-    alertEl.innerHTML = '<div class="alert alert-error">Please select an Excel file first.</div>';
-    return;
+    alertEl.innerHTML = '<div class="alert alert-error">Please select an Excel file first.</div>'; return;
   }
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-  reader.onload = async function(e) {
+  var file = fileInput.files[0];
+  var reader = new FileReader();
+  reader.onload = async function(e){
     try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
-      if (rows.length === 0) {
-        alertEl.innerHTML = '<div class="alert alert-error">No data found in the file.</div>';
-        return;
-      }
+      var data = new Uint8Array(e.target.result);
+      var workbook = XLSX.read(data, { type: 'array' });
+      var sheet = workbook.Sheets[workbook.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(sheet);
+      if (rows.length === 0) { alertEl.innerHTML = '<div class="alert alert-error">No data found.</div>'; return; }
       alertEl.innerHTML = '<div class="alert alert-info">Importing ' + rows.length + ' words...</div>';
-      const vocab = rows.map(r => ({
-        character: String(r.character || r.Character || r['汉字'] || '').trim(),
-        pinyin: String(r.pinyin || r.Pinyin || r['拼音'] || '').trim(),
-        lesson: String(r.lesson || r.Lesson || r['课次'] || '').trim() || null,
-        active: true
-      })).filter(v => v.character && v.pinyin);
-      if (vocab.length === 0) {
-        alertEl.innerHTML = '<div class="alert alert-error">Could not read data. Make sure columns are named: character, pinyin, lesson</div>';
-        return;
-      }
-      const { error } = await sb.from('vocab').insert(vocab);
-      if (error) {
-        alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>';
-        return;
-      }
-      alertEl.innerHTML = '<div class="alert alert-success">Successfully imported ' + vocab.length + ' words!</div>';
+      var vocab = rows.map(function(r){
+        return { character: String(r.character || r.Character || r['汉字'] || '').trim(), pinyin: String(r.pinyin || r.Pinyin || r['拼音'] || '').trim(), lesson: String(r.lesson || r.Lesson || r['课次'] || '').trim() || null, active: true };
+      }).filter(function(v){ return v.character && v.pinyin; });
+      if (vocab.length === 0) { alertEl.innerHTML = '<div class="alert alert-error">Could not read data. Check column names: character, pinyin, lesson</div>'; return; }
+      var result = await sb.from('vocab').insert(vocab);
+      if (result.error) { alertEl.innerHTML = '<div class="alert alert-error">' + result.error.message + '</div>'; return; }
+      alertEl.innerHTML = '<div class="alert alert-success">Imported ' + vocab.length + ' words!</div>';
       fileInput.value = '';
       loadVocabTable();
     } catch(err) {
-      alertEl.innerHTML = '<div class="alert alert-error">Error reading file: ' + err.message + '</div>';
+      alertEl.innerHTML = '<div class="alert alert-error">Error: ' + err.message + '</div>';
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
 function downloadTemplate() {
-  const ws = XLSX.utils.aoa_to_sheet([
-    ['character', 'pinyin', 'lesson'],
-    ['朋友', 'péng yǒu', 'Lesson 2'],
-    ['家人', 'jiā rén', 'Lesson 2'],
-    ['学校', 'xué xiào', 'Lesson 2'],
+  var ws = XLSX.utils.aoa_to_sheet([
+    ['character','pinyin','lesson'],
+    ['朋友','péng yǒu','Lesson 2'],
+    ['家人','jiā rén','Lesson 2'],
+    ['学校','xué xiào','Lesson 2']
   ]);
-  const wb = XLSX.utils.book_new();
+  var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Vocabulary');
   XLSX.writeFile(wb, 'vocab_template.xlsx');
 }
 
-// ─── AUTO LOGIN CHECK ───
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+// AUTO LOGIN
+sb.auth.onAuthStateChange(async function(event, session){
+  if (session && session.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
     await handleUser(session.user);
   }
 });
