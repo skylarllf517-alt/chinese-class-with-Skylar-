@@ -804,10 +804,18 @@ function downloadTemplate() {
 
 // AUTO LOGIN
 sb.auth.onAuthStateChange(async function(event, session){
-  if (session && session.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+  if (session && session.user) {
     await handleUser(session.user);
   }
 });
+
+// Check if already logged in on page load
+(async function(){
+  var result = await sb.auth.getSession();
+  if (result.data && result.data.session && result.data.session.user) {
+    await handleUser(result.data.session.user);
+  }
+})();
 </script>
 </body>
 </html>
