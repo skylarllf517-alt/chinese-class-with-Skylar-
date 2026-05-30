@@ -308,7 +308,30 @@
   }
   .approve-btn:hover { background: var(--red); }
 
-  @media (max-width: 600px) {
+  .lesson-card { background: var(--paper); border: 1px solid rgba(184,134,11,0.2); border-radius: 4px; overflow: hidden; }
+  .lesson-card-header { padding: 16px; border-bottom: 1px solid rgba(184,134,11,0.1); display: flex; align-items: flex-start; justify-content: space-between; }
+  .lesson-num-badge { font-size: 10px; padding: 3px 10px; border-radius: 2px; font-weight: 500; letter-spacing: 1px; background: rgba(139,26,26,0.08); color: var(--accent); margin-bottom: 8px; display: inline-block; }
+  .lesson-title-text { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .lesson-date-text { font-size: 11px; color: var(--muted); }
+  .lesson-body { padding: 16px; }
+  .resource-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(184,134,11,0.08); }
+  .resource-row:last-child { border-bottom: none; }
+  .resource-icon { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-ppt { background: rgba(192,57,43,0.08); color: var(--red); }
+  .icon-vocab { background: rgba(139,26,26,0.08); color: var(--accent); }
+  .icon-game { background: rgba(42,125,79,0.08); color: var(--green); }
+  .icon-empty { background: var(--warm); color: var(--muted); }
+  .resource-info { flex: 1; min-width: 0; }
+  .resource-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .resource-sub { font-size: 11px; color: var(--muted); }
+  .lesson-footer { padding: 12px 16px; background: var(--warm); display: flex; gap: 8px; }
+  .lesson-foot-btn { flex: 1; padding: 7px; font-size: 11px; border: 1px solid rgba(184,134,11,0.3); background: var(--paper); color: var(--muted); cursor: pointer; font-family: inherit; transition: all 0.2s; }
+  .lesson-foot-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .new-lesson-card { background: var(--warm); border: 2px dashed rgba(184,134,11,0.3); border-radius: 4px; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; min-height: 220px; transition: all 0.2s; }
+  .new-lesson-card:hover { border-color: var(--accent); }
+  .new-lesson-card span { font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 600px) {  @media (max-width: 600px) {
     .page, .game-wrap, .teacher-page { padding: 20px; }
     .stats-row { grid-template-columns: 1fr; }
     .games-grid { grid-template-columns: 1fr; }
@@ -494,6 +517,7 @@
     <div class="tabs">
       <div class="tab active" onclick="switchTab('students', this)">Students</div>
       <div class="tab" onclick="switchTab('scores', this)">Game Scores</div>
+      <div class="tab" onclick="switchTab('lessons', this)">Lessons</div>
       <div class="tab" onclick="switchTab('vocab', this)">Vocabulary</div>
     </div>
 
@@ -509,6 +533,29 @@
         <thead><tr><th>Student</th><th>Game</th><th>Score</th><th>Date</th></tr></thead>
         <tbody id="scores-tbody"></tbody>
       </table>
+    </div>
+
+    <div class="tab-pane" id="pane-lessons">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:15px;font-weight:500">Lesson modules</div>
+        <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="showNewLessonForm()">+ New lesson</button>
+      </div>
+
+      <div id="new-lesson-form" style="display:none;background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--accent)">
+        <div style="font-size:13px;font-weight:500;margin-bottom:16px;letter-spacing:1px">CREATE NEW LESSON</div>
+        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:12px;align-items:end;flex-wrap:wrap">
+          <div class="field" style="margin:0"><label>Lesson number</label><input type="number" id="new-lesson-num" placeholder="e.g. 4" style="width:100px" /></div>
+          <div class="field" style="margin:0"><label>Title</label><input type="text" id="new-lesson-title" placeholder="e.g. Food & eating" /></div>
+          <div class="field" style="margin:0"><label>Date</label><input type="date" id="new-lesson-date" /></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px">
+          <button class="btn-primary" style="padding:10px 20px" onclick="createLesson()">Create lesson</button>
+          <button class="btn-sm" onclick="hideNewLessonForm()">Cancel</button>
+        </div>
+        <div id="new-lesson-alert" style="margin-top:12px"></div>
+      </div>
+
+      <div id="lessons-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
     </div>
 
     <div class="tab-pane" id="pane-vocab">
@@ -587,10 +634,15 @@ async function doLogin() {
   alertEl.innerHTML = '';
   if (!email || !pw) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>'; return; }
   btn.disabled = true; btn.textContent = 'Signing in...';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-  btn.disabled = false; btn.textContent = 'Sign in';
-  if (error) { alertEl.innerHTML = `<div class="alert alert-error">${error.message}</div>`; return; }
-  await handleUser(data.user);
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    btn.disabled = false; btn.textContent = 'Sign in';
+    if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
+    if (data && data.user) { await handleUser(data.user); }
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Sign in';
+    alertEl.innerHTML = '<div class="alert alert-error">Connection error. Please try again.</div>';
+  }
 }
 
 async function doRegister() {
@@ -726,6 +778,7 @@ function goBack() { show('screen-student'); }
 // ─── TEACHER ───
 async function loadTeacherData() {
   loadVocabTable();
+  loadLessons();
   const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   const { data: scores } = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
   if (profiles) {
@@ -770,6 +823,130 @@ function switchTab(id, el) {
   document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('pane-' + id).classList.add('active');
+}
+
+// ─── LESSON MANAGEMENT ───
+function goToVocabTab() {
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+  tabs[3].classList.add('active');
+  document.getElementById('pane-vocab').classList.add('active');
+}
+
+function showNewLessonForm() {
+  document.getElementById('new-lesson-form').style.display = 'block';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('new-lesson-date').value = today;
+}
+function hideNewLessonForm() {
+  document.getElementById('new-lesson-form').style.display = 'none';
+}
+
+async function createLesson() {
+  const num = document.getElementById('new-lesson-num').value;
+  const title = document.getElementById('new-lesson-title').value.trim();
+  const date = document.getElementById('new-lesson-date').value;
+  const alertEl = document.getElementById('new-lesson-alert');
+  if (!num || !title) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in lesson number and title.</div>'; return; }
+  const { error } = await sb.from('lessons').insert({ lesson_number: parseInt(num), title, lesson_date: date || null });
+  if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
+  hideNewLessonForm();
+  document.getElementById('new-lesson-num').value = '';
+  document.getElementById('new-lesson-title').value = '';
+  loadLessons();
+}
+
+async function loadLessons() {
+  const { data: lessons } = await sb.from('lessons').select('*').order('lesson_number');
+  const { data: files } = await sb.from('lesson_files').select('*');
+  const { data: vocab } = await sb.from('vocab').select('*');
+  const { data: scores } = await sb.from('game_scores').select('*');
+  const grid = document.getElementById('lessons-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (lessons) {
+    lessons.forEach(lesson => {
+      const lessonFiles = (files || []).filter(f => f.lesson_id === lesson.id);
+      const pptFile = lessonFiles.find(f => f.file_type === 'ppt');
+      const lessonVocab = (vocab || []).filter(v => v.lesson === 'Lesson ' + lesson.lesson_number);
+      const lessonScores = (scores || []);
+      const dateStr = lesson.lesson_date ? new Date(lesson.lesson_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date set';
+      const avgScore = lessonScores.length ? Math.round(lessonScores.reduce((a,b) => a + b.score, 0) / lessonScores.length) : null;
+
+      const card = document.createElement('div');
+      card.className = 'lesson-card';
+      card.innerHTML =
+        '<div class="lesson-card-header">' +
+          '<div>' +
+            '<div class="lesson-num-badge">LESSON ' + lesson.lesson_number + '</div>' +
+            '<div class="lesson-title-text">' + lesson.title + '</div>' +
+            '<div class="lesson-date-text">' + dateStr + '</div>' +
+          '</div>' +
+          '<span style="cursor:pointer;color:var(--muted);font-size:18px" onclick="deleteLesson('' + lesson.id + '')">···</span>' +
+        '</div>' +
+        '<div class="lesson-body">' +
+          '<div class="resource-row">' +
+            '<div class="resource-icon ' + (pptFile ? 'icon-ppt' : 'icon-empty') + '">📊</div>' +
+            '<div class="resource-info">' +
+              '<div class="resource-name">' + (pptFile ? pptFile.file_name : 'No slides yet') + '</div>' +
+              '<div class="resource-sub">' + (pptFile ? pptFile.file_size + ' · uploaded ' + new Date(pptFile.created_at).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : 'Upload a PPT for this lesson') + '</div>' +
+            '</div>' +
+            (pptFile ? '<a href="' + pptFile.file_url + '" target="_blank" style="font-size:13px;color:var(--muted)">↓</a>' : '') +
+          '</div>' +
+          '<div class="resource-row">' +
+            '<div class="resource-icon icon-vocab">📝</div>' +
+            '<div class="resource-info">' +
+              '<div class="resource-name">' + (lessonVocab.length ? lessonVocab.length + ' words' : 'No vocab yet') + '</div>' +
+              '<div class="resource-sub">' + (lessonVocab.length ? lessonVocab.slice(0,3).map(v=>v.character).join(', ') + (lessonVocab.length > 3 ? '…' : '') : 'Add vocab for this lesson') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="resource-row">' +
+            '<div class="resource-icon icon-game">🎮</div>' +
+            '<div class="resource-info">' +
+              '<div class="resource-name">' + (lessonScores.length ? lessonScores.length + ' plays' : 'Not played yet') + '</div>' +
+              '<div class="resource-sub">' + (avgScore ? 'Avg score: ' + avgScore : 'No game data yet') + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="lesson-footer">' +
+          '<button class="lesson-foot-btn" onclick="uploadPPT('' + lesson.id + '')">↑ Upload PPT</button>' +
+          '<button class="lesson-foot-btn" onclick="goToVocabTab()">+ Add vocab</button>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+  }
+  const addCard = document.createElement('div');
+  addCard.className = 'new-lesson-card';
+  addCard.onclick = showNewLessonForm;
+  addCard.innerHTML = '<span style="font-size:32px;color:var(--muted)">+</span><span>Create new lesson</span>';
+  grid.appendChild(addCard);
+}
+
+async function deleteLesson(id) {
+  if (!confirm('Delete this lesson?')) return;
+  await sb.from('lessons').delete().eq('id', id);
+  loadLessons();
+}
+
+function uploadPPT(lessonId) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.ppt,.pptx,.pdf';
+  input.onchange = async function() {
+    const file = input.files[0];
+    if (!file) return;
+    const sizeMB = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+    const { error: uploadError } = await sb.storage.from('lesson-files').upload(lessonId + '/' + file.name, file, { upsert: true });
+    let fileUrl = '';
+    if (!uploadError) {
+      const { data } = sb.storage.from('lesson-files').getPublicUrl(lessonId + '/' + file.name);
+      fileUrl = data.publicUrl;
+    }
+    await sb.from('lesson_files').upsert({ lesson_id: lessonId, file_name: file.name, file_url: fileUrl, file_type: 'ppt', file_size: sizeMB });
+    loadLessons();
+  };
+  input.click();
 }
 
 // ─── VOCAB MANAGEMENT ───
