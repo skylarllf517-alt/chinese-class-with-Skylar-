@@ -6,6 +6,7 @@
 <title>Chinese Class with Skylar</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --ink: #1a1208;
@@ -511,7 +512,7 @@
     </div>
 
     <div class="tab-pane" id="pane-vocab">
-      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--gold)">
+      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:16px;border-top:3px solid var(--gold)">
         <div style="font-size:13px;font-weight:500;margin-bottom:16px;letter-spacing:1px">ADD NEW WORD</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
           <div class="field" style="margin:0"><label>Chinese character</label><input type="text" id="new-char" placeholder="e.g. 朋友" /></div>
@@ -520,6 +521,20 @@
           <button class="btn-primary" style="padding:12px 20px;white-space:nowrap" onclick="addVocab()">+ Add word</button>
         </div>
         <div id="vocab-alert" style="margin-top:12px"></div>
+      </div>
+
+      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--accent)">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;letter-spacing:1px">BULK IMPORT FROM EXCEL</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.8">
+          Upload an Excel file (.xlsx) with 3 columns: <strong>character</strong>, <strong>pinyin</strong>, <strong>lesson</strong><br>
+          First row should be the column headers.
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <input type="file" id="excel-upload" accept=".xlsx,.xls" style="font-size:13px;color:var(--muted)" />
+          <button class="btn-primary" style="padding:12px 24px;white-space:nowrap" onclick="importExcel()">Import Excel</button>
+          <a href="#" onclick="downloadTemplate()" style="font-size:12px;color:var(--accent);letter-spacing:1px">Download template</a>
+        </div>
+        <div id="excel-alert" style="margin-top:12px"></div>
       </div>
       <table class="student-table">
         <thead><tr><th>Character</th><th>Pinyin</th><th>Lesson</th><th>Status</th><th>Delete</th></tr></thead>
@@ -804,9 +819,68 @@ async function deleteVocab(id, btn) {
   loadVocabTable();
 }
 
+// ─── EXCEL IMPORT ───
+async function importExcel() {
+  const fileInput = document.getElementById('excel-upload');
+  const alertEl = document.getElementById('excel-alert');
+  alertEl.innerHTML = '';
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alertEl.innerHTML = '<div class="alert alert-error">Please select an Excel file first.</div>';
+    return;
+  }
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      if (rows.length === 0) {
+        alertEl.innerHTML = '<div class="alert alert-error">No data found in the file.</div>';
+        return;
+      }
+      alertEl.innerHTML = '<div class="alert alert-info">Importing ' + rows.length + ' words...</div>';
+      const vocab = rows.map(r => ({
+        character: String(r.character || r.Character || r['汉字'] || '').trim(),
+        pinyin: String(r.pinyin || r.Pinyin || r['拼音'] || '').trim(),
+        lesson: String(r.lesson || r.Lesson || r['课次'] || '').trim() || null,
+        active: true
+      })).filter(v => v.character && v.pinyin);
+      if (vocab.length === 0) {
+        alertEl.innerHTML = '<div class="alert alert-error">Could not read data. Make sure columns are named: character, pinyin, lesson</div>';
+        return;
+      }
+      const { error } = await sb.from('vocab').insert(vocab);
+      if (error) {
+        alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>';
+        return;
+      }
+      alertEl.innerHTML = '<div class="alert alert-success">Successfully imported ' + vocab.length + ' words!</div>';
+      fileInput.value = '';
+      loadVocabTable();
+    } catch(err) {
+      alertEl.innerHTML = '<div class="alert alert-error">Error reading file: ' + err.message + '</div>';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['character', 'pinyin', 'lesson'],
+    ['朋友', 'péng yǒu', 'Lesson 2'],
+    ['家人', 'jiā rén', 'Lesson 2'],
+    ['学校', 'xué xiào', 'Lesson 2'],
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Vocabulary');
+  XLSX.writeFile(wb, 'vocab_template.xlsx');
+}
+
 // ─── AUTO LOGIN CHECK ───
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
+  if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
     await handleUser(session.user);
   }
 });
