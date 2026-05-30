@@ -806,7 +806,7 @@ async function deleteVocab(id, btn) {
 
 // ─── AUTO LOGIN CHECK ───
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user && event === 'SIGNED_IN') {
+  if (session?.user) {
     await handleUser(session.user);
   }
 });
