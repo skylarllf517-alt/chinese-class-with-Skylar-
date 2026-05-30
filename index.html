@@ -493,6 +493,7 @@
     <div class="tabs">
       <div class="tab active" onclick="switchTab('students', this)">Students</div>
       <div class="tab" onclick="switchTab('scores', this)">Game Scores</div>
+      <div class="tab" onclick="switchTab('vocab', this)">Vocabulary</div>
     </div>
 
     <div class="tab-pane active" id="pane-students">
@@ -508,6 +509,23 @@
         <tbody id="scores-tbody"></tbody>
       </table>
     </div>
+
+    <div class="tab-pane" id="pane-vocab">
+      <div style="background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--gold)">
+        <div style="font-size:13px;font-weight:500;margin-bottom:16px;letter-spacing:1px">ADD NEW WORD</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
+          <div class="field" style="margin:0"><label>Chinese character</label><input type="text" id="new-char" placeholder="e.g. 朋友" /></div>
+          <div class="field" style="margin:0"><label>Pinyin</label><input type="text" id="new-pin" placeholder="e.g. peng you" /></div>
+          <div class="field" style="margin:0"><label>Lesson (optional)</label><input type="text" id="new-lesson" placeholder="e.g. Lesson 2" /></div>
+          <button class="btn-primary" style="padding:12px 20px;white-space:nowrap" onclick="addVocab()">+ Add word</button>
+        </div>
+        <div id="vocab-alert" style="margin-top:12px"></div>
+      </div>
+      <table class="student-table">
+        <thead><tr><th>Character</th><th>Pinyin</th><th>Lesson</th><th>Status</th><th>Delete</th></tr></thead>
+        <tbody id="vocab-tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -521,14 +539,15 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Teacher email — change this to your real email
 const TEACHER_EMAIL = 'skylarllf517@gmail.com';
 
-// ─── GAME DATA ───
-const pairs = [
-  {char:'你好', pin:'nǐ hǎo'},
-  {char:'谢谢', pin:'xiè xie'},
-  {char:'老师', pin:'lǎo shī'},
-  {char:'学生', pin:'xué shēng'},
-  {char:'汉字', pin:'hàn zì'},
-];
+// ─── GAME DATA (loaded from Supabase) ───
+let pairs = [];
+
+async function loadVocab() {
+  const { data } = await sb.from('vocab').select('*').eq('active', true).order('created_at');
+  if (data && data.length > 0) {
+    pairs = data.map(v => ({ char: v.character, pin: v.pinyin }));
+  }
+}
 
 let selChar = null, selPin = null, matched = [], score = 0, currentUser = null, userProfile = null;
 
@@ -624,7 +643,8 @@ async function loadStudentStats(uid) {
 }
 
 // ─── GAME ───
-function startGame() {
+async function startGame() {
+  await loadVocab();
   score = 0; matched = []; selChar = null; selPin = null;
   document.getElementById('live-score').textContent = '0';
   document.getElementById('result-box').classList.remove('show');
@@ -690,6 +710,7 @@ function goBack() { show('screen-student'); }
 
 // ─── TEACHER ───
 async function loadTeacherData() {
+  loadVocabTable();
   const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   const { data: scores } = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
   if (profiles) {
@@ -734,6 +755,53 @@ function switchTab(id, el) {
   document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('pane-' + id).classList.add('active');
+}
+
+// ─── VOCAB MANAGEMENT ───
+async function loadVocabTable() {
+  const { data } = await sb.from('vocab').select('*').order('created_at');
+  const tbody = document.getElementById('vocab-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (!data) return;
+  data.forEach(v => {
+    const tr = document.createElement('tr');
+    const btn = document.createElement('button');
+    btn.className = 'approve-btn';
+    btn.style.background = '#c0392b';
+    btn.textContent = 'Delete';
+    btn.onclick = function() { deleteVocab(v.id, btn); };
+    const td1 = document.createElement('td'); td1.innerHTML = '<strong style="font-size:18px">' + v.character + '</strong>';
+    const td2 = document.createElement('td'); td2.textContent = v.pinyin;
+    const td3 = document.createElement('td'); td3.textContent = v.lesson || '—';
+    const td4 = document.createElement('td'); td4.innerHTML = '<span class="badge ' + (v.active ? 'badge-active' : 'badge-pending') + '">' + (v.active ? 'Active' : 'Hidden') + '</span>';
+    const td5 = document.createElement('td'); td5.appendChild(btn);
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4); tr.appendChild(td5);
+    tbody.appendChild(tr);
+  });
+}
+
+async function addVocab() {
+  const char = document.getElementById('new-char').value.trim();
+  const pin = document.getElementById('new-pin').value.trim();
+  const lesson = document.getElementById('new-lesson').value.trim();
+  const alertEl = document.getElementById('vocab-alert');
+  if (!char || !pin) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in character and pinyin.</div>'; return; }
+  const { error } = await sb.from('vocab').insert({ character: char, pinyin: pin, lesson: lesson || null, active: true });
+  if (error) { alertEl.innerHTML = '<div class="alert alert-error">' + error.message + '</div>'; return; }
+  document.getElementById('new-char').value = '';
+  document.getElementById('new-pin').value = '';
+  document.getElementById('new-lesson').value = '';
+  alertEl.innerHTML = '<div class="alert alert-success">Word added! Game will use this next time.</div>';
+  setTimeout(() => { alertEl.innerHTML = ''; }, 3000);
+  loadVocabTable();
+}
+
+async function deleteVocab(id, btn) {
+  if (!confirm('Delete this word?')) return;
+  btn.disabled = true;
+  await sb.from('vocab').delete().eq('id', id);
+  loadVocabTable();
 }
 
 // ─── AUTO LOGIN CHECK ───
