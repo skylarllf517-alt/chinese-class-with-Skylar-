@@ -255,8 +255,9 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
     <a class="pub-logo" href="#">林 · 汉语</a>
     <ul class="pub-links">
       <li><a href="#about">About</a></li>
-      <li><a href="#diary">Teaching diary</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="#diary">Diary</a></li>
+      <li><a href="#resources">Resources</a></li>
+      <li><a href="#enquiry">Contact</a></li>
       <li><a href="#" onclick="showAuth();return false;" class="btn-join">Join my class</a></li>
     </ul>
   </nav>
@@ -296,24 +297,42 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
       <span class="section-sub">教学日记</span>
       <div class="section-line"></div>
     </div>
-    <div class="diary-grid">
-      <div class="diary-card">
-        <div class="diary-emoji">😄</div>
-        <div class="diary-date">May 2026 · Lesson 3</div>
-        <h3 class="diary-title">My student couldn't tell apart "四" and "十" — we laughed for ten minutes</h3>
-        <p class="diary-excerpt">Today we were practising numbers. My student kept mixing up sì and shí, and ended up saying "I have forty-four cats"...</p>
+    <div class="diary-grid" id="public-diary">
+      <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1">Loading diary...</div>
+    </div>
+  </section>
+
+  <!-- RESOURCES SECTION -->
+  <section class="pub-section" id="resources">
+    <div class="section-header">
+      <h2 class="section-title">Free resources</h2>
+      <span class="section-sub">免费资料</span>
+      <div class="section-line"></div>
+    </div>
+    <div id="public-resources" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">
+      <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1">Loading resources...</div>
+    </div>
+  </section>
+
+  <!-- ENQUIRY / CONTACT -->
+  <section class="pub-section alt" id="enquiry">
+    <div class="section-header">
+      <h2 class="section-title">Ask me anything</h2>
+      <span class="section-sub">留言咨询</span>
+      <div class="section-line"></div>
+    </div>
+    <div style="max-width:600px;margin:0 auto">
+      <div style="background:rgba(184,134,11,0.08);border-left:3px solid var(--gold);padding:16px 20px;margin-bottom:32px;font-size:14px;line-height:2">
+        💬 I read every message and promise to reply within 48 hours. Whether you're curious about lessons, pricing, or just want to say 你好 — I'd love to hear from you!
       </div>
-      <div class="diary-card">
-        <div class="diary-emoji">🥟</div>
-        <div class="diary-date">April 2026 · Lesson 2</div>
-        <h3 class="diary-title">Learning measure words by making dumplings</h3>
-        <p class="diary-excerpt">We practised 一个、一只、一碗 while actually making dumplings. My student said it was the most delicious Chinese lesson she'd ever had...</p>
-      </div>
-      <div class="diary-card">
-        <div class="diary-emoji">🌸</div>
-        <div class="diary-date">March 2026 · Lesson 1</div>
-        <h3 class="diary-title">First time telling a full story in Chinese</h3>
-        <p class="diary-excerpt">My student used the words she'd learned to tell a story about her cat. The sentences were still simple, but the pride in her eyes moved me...</p>
+      <div id="enquiry-form-wrap">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="field"><label>YOUR NAME</label><input type="text" id="enq-name" placeholder="Emma Smith"/></div>
+          <div class="field"><label>EMAIL ADDRESS</label><input type="email" id="enq-email" placeholder="emma@email.com"/></div>
+        </div>
+        <div class="field" style="margin-bottom:20px"><label>YOUR MESSAGE</label><textarea id="enq-message" style="width:100%;padding:12px 16px;border:1px solid rgba(184,134,11,0.3);background:var(--paper);font-family:inherit;font-size:14px;line-height:1.8;height:120px;outline:none;resize:none" placeholder="Hi Skylar, I'm interested in learning Chinese..."></textarea></div>
+        <div id="enq-alert" style="margin-bottom:16px"></div>
+        <button class="btn-primary-pub" onclick="submitEnquiry()">Send message →</button>
       </div>
     </div>
   </section>
@@ -476,6 +495,7 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
   <div class="topbar">
     <div class="topbar-logo">林 · Teacher Dashboard</div>
     <div class="topbar-right">
+      <div id="enquiry-alert" style="display:none;background:#c0392b;color:white;font-size:11px;padding:4px 10px;border-radius:10px;letter-spacing:1px"></div>
       <div class="user-chip">
         <div class="user-avatar" style="background:var(--green)">T</div>
         <span>Ms Lin</span>
@@ -494,6 +514,9 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
       <div class="tab" onclick="switchTab('scores',this)">Game Scores</div>
       <div class="tab" onclick="switchTab('lessons',this)">Lessons</div>
       <div class="tab" onclick="switchTab('vocab',this)">Vocabulary</div>
+      <div class="tab" onclick="switchTab('diary',this)">Diary</div>
+      <div class="tab" onclick="switchTab('resources',this)">Resources</div>
+      <div class="tab" id="tab-enquiries" onclick="switchTab('enquiries',this)">Enquiries <span id="unread-count" style="display:none;background:#c0392b;color:white;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px"></span></div>
     </div>
 
     <div class="tab-pane active" id="pane-students">
@@ -523,6 +546,48 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
         <div id="new-lesson-alert" style="margin-top:12px"></div>
       </div>
       <div class="lessons-grid" id="lessons-grid"></div>
+    </div>
+
+    <!-- DIARY TAB -->
+    <div class="tab-pane" id="pane-diary">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:15px;font-weight:500">Teaching diary</div>
+        <button class="btn-prim" onclick="showNewDiaryForm()">+ New entry</button>
+      </div>
+      <div id="new-diary-form" style="display:none;background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;margin-bottom:24px;border-top:3px solid var(--gold)">
+        <div class="box-label">WRITE NEW DIARY ENTRY</div>
+        <div style="display:grid;grid-template-columns:60px 1fr 120px;gap:12px;align-items:end;margin-bottom:12px">
+          <div class="field" style="margin:0"><label>Emoji</label><input type="text" id="diary-emoji" placeholder="😄" style="text-align:center;font-size:20px"/></div>
+          <div class="field" style="margin:0"><label>Title</label><input type="text" id="diary-title" placeholder="e.g. My student confused 四 and 十..."/></div>
+          <div class="field" style="margin:0"><label>Lesson ref</label><input type="text" id="diary-lesson" placeholder="e.g. Lesson 3"/></div>
+        </div>
+        <div class="field" style="margin-bottom:12px"><label>Short excerpt (shown on homepage)</label><input type="text" id="diary-excerpt" placeholder="A brief teaser shown on the public homepage..."/></div>
+        <div class="field" style="margin-bottom:16px"><label>Full content</label><textarea id="diary-content" style="width:100%;padding:12px;border:1px solid rgba(184,134,11,0.3);font-family:inherit;font-size:13px;line-height:1.8;height:120px;outline:none;background:var(--paper)" placeholder="Write the full diary entry here..."></textarea></div>
+        <div style="display:flex;gap:12px">
+          <button class="btn-prim" onclick="saveDiary()">Publish</button>
+          <button class="btn-sm" onclick="hideNewDiaryForm()">Cancel</button>
+        </div>
+        <div id="diary-alert" style="margin-top:12px"></div>
+      </div>
+      <div id="diary-list"></div>
+    </div>
+
+    <!-- RESOURCES TAB -->
+    <div class="tab-pane" id="pane-resources">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:15px;font-weight:500">Free resources for visitors</div>
+        <button class="btn-prim" onclick="uploadResource()">+ Upload resource</button>
+      </div>
+      <div id="resources-list"></div>
+    </div>
+
+    <!-- ENQUIRIES TAB -->
+    <div class="tab-pane" id="pane-enquiries">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:15px;font-weight:500">Visitor enquiries</div>
+        <button class="btn-sm" onclick="markAllRead()">Mark all as read</button>
+      </div>
+      <div id="enquiries-list"></div>
     </div>
 
     <div class="tab-pane" id="pane-vocab">
@@ -830,7 +895,7 @@ function goBack() {
 
 // ── TEACHER ──
 async function loadTeacherData() {
-  loadLessons(); loadVocabTable();
+  loadLessons(); loadVocabTable(); loadDiaryList(); loadResourcesList(); loadEnquiries();
   var pr = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   var sr = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
   var profiles = pr.data, scores = sr.data;
@@ -1046,6 +1111,200 @@ function downloadTemplate() {
   XLSX.writeFile(wb,'vocab_template.xlsx');
 }
 
+// ── DIARY (PUBLIC) ──
+async function loadPublicDiary() {
+  var r = await sb.from('diary_posts').select('*').order('created_at', { ascending: false }).limit(6);
+  var container = document.getElementById('public-diary');
+  if (!container) return;
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1">No diary entries yet. Check back soon!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  r.data.forEach(function(post){
+    var date = new Date(post.created_at).toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+    var card = document.createElement('div');
+    card.className = 'diary-card';
+    card.innerHTML = '<div class="diary-emoji">' + (post.emoji||'📝') + '</div><div class="diary-date">' + date + (post.lesson_ref ? ' · ' + post.lesson_ref : '') + '</div><h3 class="diary-title">' + post.title + '</h3><p class="diary-excerpt">' + (post.excerpt||'') + '</p>';
+    container.appendChild(card);
+  });
+}
+
+// ── RESOURCES (PUBLIC) ──
+async function loadPublicResources() {
+  var r = await sb.from('resources').select('*').order('created_at', { ascending: false });
+  var container = document.getElementById('public-resources');
+  if (!container) return;
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1">No resources uploaded yet. Check back soon!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  r.data.forEach(function(res){
+    var card = document.createElement('div');
+    card.style.cssText = 'background:white;border:1px solid rgba(184,134,11,0.2);padding:28px;text-align:center;border-top:3px solid var(--accent);';
+    card.innerHTML = '<div style="font-size:36px;margin-bottom:12px">📄</div><div style="font-size:15px;font-weight:500;margin-bottom:8px">' + res.title + '</div><div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:16px">' + (res.description||'') + '</div>' + (res.file_url ? '<a href="' + res.file_url + '" target="_blank" class="btn-primary-pub" style="font-size:12px;padding:10px 20px;display:inline-block;text-decoration:none">↓ Download free</a>' : '<span style="font-size:12px;color:var(--muted)">Coming soon</span>');
+    container.appendChild(card);
+  });
+}
+
+// ── ENQUIRY FORM ──
+async function submitEnquiry() {
+  var name = document.getElementById('enq-name').value.trim();
+  var email = document.getElementById('enq-email').value.trim();
+  var message = document.getElementById('enq-message').value.trim();
+  var alertEl = document.getElementById('enq-alert');
+  if (!name || !email || !message) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>'; return; }
+  var r = await sb.from('enquiries').insert({ name: name, email: email, message: message, is_read: false });
+  if (r.error) { alertEl.innerHTML = '<div class="alert alert-error">Something went wrong. Please try again.</div>'; return; }
+  document.getElementById('enquiry-form-wrap').innerHTML = '<div style="text-align:center;padding:40px"><div style="font-family:Ma Shan Zheng,serif;font-size:48px;margin-bottom:16px">谢谢！</div><div style="font-size:15px;color:var(--muted);line-height:2">Thank you for your message, ' + name + '! I will get back to you within 48 hours.</div></div>';
+}
+
+// ── DIARY (TEACHER) ──
+function showNewDiaryForm() {
+  document.getElementById('new-diary-form').style.display = 'block';
+  document.getElementById('diary-emoji').value = '😄';
+}
+function hideNewDiaryForm() { document.getElementById('new-diary-form').style.display = 'none'; }
+
+async function saveDiary() {
+  var title = document.getElementById('diary-title').value.trim();
+  var excerpt = document.getElementById('diary-excerpt').value.trim();
+  var content = document.getElementById('diary-content').value.trim();
+  var emoji = document.getElementById('diary-emoji').value.trim() || '📝';
+  var lesson = document.getElementById('diary-lesson').value.trim();
+  var alertEl = document.getElementById('diary-alert');
+  if (!title) { alertEl.innerHTML = '<div class="alert alert-error">Please add a title.</div>'; return; }
+  var r = await sb.from('diary_posts').insert({ title: title, excerpt: excerpt, content: content, emoji: emoji, lesson_ref: lesson || null });
+  if (r.error) { alertEl.innerHTML = '<div class="alert alert-error">' + r.error.message + '</div>'; return; }
+  hideNewDiaryForm();
+  document.getElementById('diary-title').value = '';
+  document.getElementById('diary-excerpt').value = '';
+  document.getElementById('diary-content').value = '';
+  loadDiaryList();
+}
+
+async function loadDiaryList() {
+  var r = await sb.from('diary_posts').select('*').order('created_at', { ascending: false });
+  var container = document.getElementById('diary-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No diary entries yet. Write your first one!</div>';
+    return;
+  }
+  r.data.forEach(function(post){
+    var date = new Date(post.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    var row = document.createElement('div');
+    row.style.cssText = 'background:white;border:1px solid rgba(184,134,11,0.2);padding:20px;margin-bottom:12px;border-left:3px solid var(--gold);display:flex;align-items:flex-start;gap:16px;';
+    row.innerHTML = '<div style="font-size:28px;flex-shrink:0">' + (post.emoji||'\ud83d\udcdd') + '</div><div style="flex:1"><div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">' + date + (post.lesson_ref ? ' · ' + post.lesson_ref : '') + '</div><div style="font-size:15px;font-weight:500;margin-bottom:6px">' + post.title + '</div><div style="font-size:12px;color:var(--muted)">' + (post.excerpt||'') + '</div></div>';
+    var dBtn = document.createElement('button'); dBtn.className='approve-btn'; dBtn.style.cssText='background:#c0392b;flex-shrink:0'; dBtn.textContent='Delete';
+    dBtn.onclick = (function(pid){ return function(){ deleteDiary(pid, dBtn); }; })(post.id);
+    row.appendChild(dBtn);
+    container.appendChild(row);
+  });
+}
+
+async function deleteDiary(id, btn) {
+  if (!confirm('Delete this diary entry?')) return;
+  btn.disabled = true;
+  await sb.from('diary_posts').delete().eq('id', id);
+  loadDiaryList();
+}
+
+// ── RESOURCES (TEACHER) ──
+function uploadResource() {
+  var input = document.createElement('input');
+  input.type = 'file'; input.accept = '.pdf,.doc,.docx,.ppt,.pptx,.jpg,.png';
+  input.onchange = async function(){
+    var file = input.files[0]; if (!file) return;
+    var title = prompt('Resource title (e.g. Pinyin chart):');
+    if (!title) return;
+    var desc = prompt('Short description (optional):') || '';
+    var sizeMB = (file.size/1024/1024).toFixed(1) + ' MB';
+    var up = await sb.storage.from('lesson-files').upload('resources/' + file.name, file, { upsert: true });
+    var fileUrl = '';
+    if (!up.error) { var ud = sb.storage.from('lesson-files').getPublicUrl('resources/' + file.name); fileUrl = ud.data.publicUrl; }
+    await sb.from('resources').insert({ title: title, description: desc, file_name: file.name, file_url: fileUrl, file_size: sizeMB });
+    loadResourcesList();
+  };
+  input.click();
+}
+
+async function loadResourcesList() {
+  var r = await sb.from('resources').select('*').order('created_at', { ascending: false });
+  var container = document.getElementById('resources-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No resources yet. Upload your first one!</div>';
+    return;
+  }
+  r.data.forEach(function(res){
+    var row = document.createElement('div');
+    row.style.cssText = 'background:white;border:1px solid rgba(184,134,11,0.2);padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;';
+    row.innerHTML = '<div style="font-size:24px">\ud83d\udcc4</div><div style="flex:1"><div style="font-size:14px;font-weight:500">' + res.title + '</div><div style="font-size:12px;color:var(--muted)">' + (res.description||'') + ' · ' + (res.file_size||'') + '</div></div>';
+    if (res.file_url) { var vl=document.createElement('a'); vl.href=res.file_url; vl.target='_blank'; vl.style.cssText='font-size:12px;color:var(--accent)'; vl.textContent='View ↗'; row.appendChild(vl); }
+    var rBtn=document.createElement('button'); rBtn.className='approve-btn'; rBtn.style.background='#c0392b'; rBtn.textContent='Delete';
+    rBtn.onclick=(function(rid){ return function(){ deleteResource(rid, rBtn); }; })(res.id);
+    row.appendChild(rBtn);
+    container.appendChild(row);
+  });
+}
+
+async function deleteResource(id, btn) {
+  if (!confirm('Delete this resource?')) return;
+  btn.disabled = true;
+  await sb.from('resources').delete().eq('id', id);
+  loadResourcesList();
+}
+
+// ── ENQUIRIES (TEACHER) ──
+async function loadEnquiries() {
+  var r = await sb.from('enquiries').select('*').order('created_at', { ascending: false });
+  var container = document.getElementById('enquiries-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No enquiries yet.</div>';
+    return;
+  }
+  var unread = r.data.filter(function(e){ return !e.is_read; }).length;
+  var badge = document.getElementById('unread-count');
+  var alertBadge = document.getElementById('enquiry-alert');
+  if (badge) { if (unread > 0) { badge.style.display='inline'; badge.textContent=unread; } else { badge.style.display='none'; } }
+  if (alertBadge) { if (unread > 0) { alertBadge.style.display='inline'; alertBadge.textContent=unread + ' new'; } else { alertBadge.style.display='none'; } }
+  r.data.forEach(function(enq){
+    var date = new Date(enq.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    var row = document.createElement('div');
+    row.style.cssText = 'background:white;border:1px solid rgba(184,134,11,0.2);padding:20px;margin-bottom:12px;border-left:3px solid ' + (!enq.is_read ? 'var(--red)' : 'rgba(184,134,11,0.3)') + ';';
+    var eTop=document.createElement('div'); eTop.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
+    var eLeft=document.createElement('div'); eLeft.style.cssText='display:flex;align-items:center;gap:10px';
+    eLeft.innerHTML='<strong style="font-size:14px">'+enq.name+'</strong><span style="font-size:12px;color:var(--muted)">'+enq.email+'</span>'+((!enq.is_read)?'<span style="font-size:10px;background:rgba(192,57,43,0.1);color:var(--red);padding:2px 8px;letter-spacing:1px">NEW</span>':'');
+    var eRight=document.createElement('div'); eRight.style.cssText='display:flex;align-items:center;gap:10px';
+    var eDate=document.createElement('span'); eDate.style.cssText='font-size:11px;color:var(--muted)'; eDate.textContent=date; eRight.appendChild(eDate);
+    if(!enq.is_read){ var mrBtn=document.createElement('button'); mrBtn.className='approve-btn'; mrBtn.textContent='Mark read'; mrBtn.onclick=(function(eid){ return function(){ markRead(eid,mrBtn); }; })(enq.id); eRight.appendChild(mrBtn); }
+    eTop.appendChild(eLeft); eTop.appendChild(eRight);
+    var eMsg=document.createElement('div'); eMsg.style.cssText='font-size:13px;line-height:1.8;color:var(--ink)'; eMsg.textContent=enq.message;
+    var eReply=document.createElement('div'); eReply.style.marginTop='10px';
+    var eLink=document.createElement('a'); eLink.href='mailto:'+enq.email; eLink.className='btn-primary-pub'; eLink.style.cssText='font-size:11px;padding:6px 16px;display:inline-block;text-decoration:none'; eLink.textContent='Reply by email \u2192';
+    eReply.appendChild(eLink);
+    row.appendChild(eTop); row.appendChild(eMsg); row.appendChild(eReply);
+    container.appendChild(row);
+  });
+}
+
+async function markRead(id, btn) {
+  btn.disabled = true;
+  await sb.from('enquiries').update({ is_read: true }).eq('id', id);
+  loadEnquiries();
+}
+
+async function markAllRead() {
+  await sb.from('enquiries').update({ is_read: true }).eq('is_read', false);
+  loadEnquiries();
+}
+
 // ── AUTO LOGIN ──
 sb.auth.onAuthStateChange(async function(event, session){
   if (session && session.user) { await handleUser(session.user); }
@@ -1054,6 +1313,8 @@ sb.auth.onAuthStateChange(async function(event, session){
 (async function(){
   var r = await sb.auth.getSession();
   if (r.data && r.data.session && r.data.session.user) { await handleUser(r.data.session.user); }
+  loadPublicDiary();
+  loadPublicResources();
 })();
 </script>
 </body>
