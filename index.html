@@ -634,7 +634,7 @@ function show(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function showAuth() { show('screen-auth'); showView('login'); }
+async function showAuth() { await sb.auth.signOut(); currentUser = null; show('screen-auth'); showView('login'); }
 
 function showView(v) {
   document.getElementById('view-login').style.display = v==='login'?'block':'none';
