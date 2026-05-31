@@ -517,6 +517,7 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
       <div class="tab" onclick="switchTab('diary',this)">Diary</div>
       <div class="tab" onclick="switchTab('resources',this)">Resources</div>
       <div class="tab" id="tab-enquiries" onclick="switchTab('enquiries',this)">Enquiries <span id="unread-count" style="display:none;background:#c0392b;color:white;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px"></span></div>
+      <div class="tab" onclick="switchTab('feedback',this)">Feedback</div>
     </div>
 
     <div class="tab-pane active" id="pane-students">
@@ -590,6 +591,14 @@ footer{background:var(--ink);color:rgba(250,246,238,0.5);padding:40px 60px;displ
       <div id="enquiries-list"></div>
     </div>
 
+    <!-- FEEDBACK TAB -->
+    <div class="tab-pane" id="pane-feedback">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+        <div style="font-size:15px;font-weight:500">Student lesson feedback</div>
+      </div>
+      <div id="feedback-list"></div>
+    </div>
+
     <div class="tab-pane" id="pane-vocab">
       <div class="v-box gold-top">
         <div class="box-label">ADD NEW WORD</div>
@@ -634,7 +643,7 @@ function show(id) {
   document.getElementById(id).classList.add('active');
 }
 
-async function showAuth() { await sb.auth.signOut(); currentUser = null; show('screen-auth'); showView('login'); }
+function showAuth() { show('screen-auth'); showView('login'); }
 
 function showView(v) {
   document.getElementById('view-login').style.display = v==='login'?'block':'none';
@@ -816,7 +825,48 @@ async function loadStudentLessons(uid) {
     progBar.className = 'prog-bar';
     progBar.innerHTML = '<div class="prog-fill" style="width:' + progress + '%"></div>';
 
-    body.appendChild(pptTask); body.appendChild(gameTask); body.appendChild(progBar);
+    // Feedback section
+    var feedbackDiv = document.createElement('div');
+    feedbackDiv.style.cssText = 'margin-top:12px;padding-top:12px;border-top:1px solid rgba(184,134,11,0.1)';
+    var feedbackTitle = document.createElement('div');
+    feedbackTitle.style.cssText = 'font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-transform:uppercase';
+    feedbackTitle.textContent = 'Lesson feedback';
+    feedbackDiv.appendChild(feedbackTitle);
+    // Check if feedback already submitted
+    var fbKey = 'feedback_' + lesson.id + '_' + (currentUser ? currentUser.id : '');
+    var existingFeedback = localStorage.getItem(fbKey);
+    if (existingFeedback) {
+      var fbDone = document.createElement('div');
+      fbDone.style.cssText = 'font-size:12px;color:var(--green)';
+      fbDone.textContent = 'Feedback submitted. Thank you!';
+      feedbackDiv.appendChild(fbDone);
+    } else {
+      var q1 = document.createElement('textarea');
+      q1.placeholder = 'What did you learn today?';
+      q1.style.cssText = 'width:100%;padding:8px;border:1px solid rgba(184,134,11,0.2);font-family:inherit;font-size:12px;line-height:1.6;height:50px;resize:none;margin-bottom:6px;background:var(--paper);outline:none';
+      var q2 = document.createElement('textarea');
+      q2.placeholder = 'What are you still unsure about?';
+      q2.style.cssText = 'width:100%;padding:8px;border:1px solid rgba(184,134,11,0.2);font-family:inherit;font-size:12px;line-height:1.6;height:50px;resize:none;margin-bottom:6px;background:var(--paper);outline:none';
+      var q3 = document.createElement('textarea');
+      q3.placeholder = 'What would you like to learn next?';
+      q3.style.cssText = 'width:100%;padding:8px;border:1px solid rgba(184,134,11,0.2);font-family:inherit;font-size:12px;line-height:1.6;height:50px;resize:none;margin-bottom:8px;background:var(--paper);outline:none';
+      var fbBtn = document.createElement('button');
+      fbBtn.className = 's-task-btn'; fbBtn.textContent = 'Submit feedback';
+      fbBtn.onclick = (function(lid, q1el, q2el, q3el, key, wrap){
+        return async function(){
+          var learned = q1el.value.trim();
+          var unsure = q2el.value.trim();
+          var next = q3el.value.trim();
+          if (!learned && !unsure && !next) { alert('Please fill in at least one field.'); return; }
+          fbBtn.disabled = true; fbBtn.textContent = 'Submitting...';
+          await sb.from('lesson_feedback').insert({ lesson_id: lid, user_id: currentUser.id, learned: learned, unsure: unsure, next_topic: next });
+          localStorage.setItem(key, '1');
+          wrap.innerHTML = '<div style="font-size:12px;color:var(--green)">Feedback submitted. Thank you!</div>';
+        };
+      })(lesson.id, q1, q2, q3, fbKey, feedbackDiv);
+      feedbackDiv.appendChild(q1); feedbackDiv.appendChild(q2); feedbackDiv.appendChild(q3); feedbackDiv.appendChild(fbBtn);
+    }
+    body.appendChild(pptTask); body.appendChild(gameTask); body.appendChild(feedbackDiv); body.appendChild(progBar);
     card.appendChild(header); card.appendChild(body);
     container.appendChild(card);
   });
@@ -895,7 +945,7 @@ function goBack() {
 
 // ── TEACHER ──
 async function loadTeacherData() {
-  loadLessons(); loadVocabTable(); loadDiaryList(); loadResourcesList(); loadEnquiries();
+  loadLessons(); loadVocabTable(); loadDiaryList(); loadResourcesList(); loadEnquiries(); loadFeedback();
   var pr = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   var sr = await sb.from('game_scores').select('*, profiles(full_name)').order('created_at', { ascending: false });
   var profiles = pr.data, scores = sr.data;
@@ -1150,10 +1200,15 @@ async function loadPublicResources() {
 
 // ── ENQUIRY FORM ──
 async function submitEnquiry() {
-  var name = document.getElementById('enq-name').value.trim();
-  var email = document.getElementById('enq-email').value.trim();
-  var message = document.getElementById('enq-message').value.trim();
+  var nameEl = document.getElementById('enq-name');
+  var emailEl = document.getElementById('enq-email');
+  var messageEl = document.getElementById('enq-message');
   var alertEl = document.getElementById('enq-alert');
+  if (!nameEl || !emailEl || !messageEl) { console.log('Form elements not found'); return; }
+  var name = nameEl.value.trim();
+  var email = emailEl.value.trim();
+  var message = messageEl.value.trim();
+  alertEl.innerHTML = '';
   if (!name || !email || !message) { alertEl.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>'; return; }
   var r = await sb.from('enquiries').insert({ name: name, email: email, message: message, is_read: false });
   if (r.error) { alertEl.innerHTML = '<div class="alert alert-error">Something went wrong. Please try again.</div>'; return; }
@@ -1303,6 +1358,30 @@ async function markRead(id, btn) {
 async function markAllRead() {
   await sb.from('enquiries').update({ is_read: true }).eq('is_read', false);
   loadEnquiries();
+}
+
+// ── LESSON FEEDBACK (TEACHER) ──
+async function loadFeedback() {
+  var r = await sb.from('lesson_feedback').select('*, profiles(full_name), lessons(title, lesson_number)').order('created_at', { ascending: false });
+  var container = document.getElementById('feedback-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!r.data || r.data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No feedback yet.</div>';
+    return;
+  }
+  r.data.forEach(function(fb){
+    var date = new Date(fb.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    var card = document.createElement('div');
+    card.style.cssText = 'background:white;border:1px solid rgba(184,134,11,0.2);padding:20px;margin-bottom:12px;border-left:3px solid var(--gold)';
+    var header = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><strong style="font-size:14px">' + ((fb.profiles&&fb.profiles.full_name)||'Student') + '</strong><span style="font-size:11px;color:var(--muted);margin-left:10px">' + ((fb.lessons&&fb.lessons.title)||'') + '</span></div><span style="font-size:11px;color:var(--muted)">' + date + '</span></div>';
+    var rows = '';
+    if (fb.learned) rows += '<div style="margin-bottom:8px"><div style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:3px">LEARNED</div><div style="font-size:13px;line-height:1.6">' + fb.learned + '</div></div>';
+    if (fb.unsure) rows += '<div style="margin-bottom:8px"><div style="font-size:10px;letter-spacing:1px;color:var(--gold);margin-bottom:3px">STILL UNSURE</div><div style="font-size:13px;line-height:1.6">' + fb.unsure + '</div></div>';
+    if (fb.next_topic) rows += '<div><div style="font-size:10px;letter-spacing:1px;color:var(--accent);margin-bottom:3px">WANTS TO LEARN</div><div style="font-size:13px;line-height:1.6">' + fb.next_topic + '</div></div>';
+    card.innerHTML = header + rows;
+    container.appendChild(card);
+  });
 }
 
 // ── AUTO LOGIN ──
